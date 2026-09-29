@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sistem Zakat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuatkan Chart.js untuk visualisasi data -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-[#041a4a] text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <h1 class="text-xl font-bold tracking-wide">Zakat Admin Panel</h1>
+            </div>
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <span class="bg-blue-800 px-3 py-1 rounded-full border border-blue-700">Admin Mode</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        
+        <!-- Loading State -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-white/80 z-40 flex flex-col justify-center items-center backdrop-blur-sm">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-slate-600 font-medium">Mengambil data pangkalan...</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-slate-200 mb-6 gap-2">
+            <button id="btnTabDashboard" onclick="switchTab('dashboard')" class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none transition-colors">Dashboard</button>
+            <button id="btnTabManage" onclick="switchTab('manage')" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-blue-600 font-semibold focus:outline-none transition-colors">Pengurusan Penzakat</button>
+        </div>
+
+        <!-- Tab 1: Dashboard -->
+        <div id="tabDashboard">
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6 border-l-4 border-l-blue-600">
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Penzakat</p>
+                    <h3 id="metricTotalPayers" class="text-3xl font-bold text-slate-900">-</h3>
+                </div>
+                <div class="glass-card p-6 border-l-4 border-l-emerald-500">
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Penzakat Aktif</p>
+                    <h3 id="metricActivePayers" class="text-3xl font-bold text-slate-900">-</h3>
+                </div>
+                <div class="glass-card p-6 border-l-4 border-l-amber-500">
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Kutipan (RM)</p>
+                    <h3 id="metricTotalAmount" class="text-3xl font-bold text-slate-900">-</h3>
+                </div>
+                <div class="glass-card p-6 border-l-4 border-l-purple-500">
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Rekod Transaksi</p>
+                    <h3 id="metricTotalTransactions" class="text-3xl font-bold text-slate-900">-</h3>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="glass-card p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4">Jumlah Kutipan Tahunan (RM)</h2>
+                    <div class="relative h-64 w-full">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4">Trend Kekerapan Transaksi Tahunan</h2>
+                    <div class="relative h-64 w-full">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Pengurusan Penzakat (Hidden by default) -->
+        <div id="tabManage" class="hidden space-y-6">
+            
+            <!-- Search Section -->
+            <div class="glass-card p-6 flex flex-col md:flex-row gap-4 items-end bg-gradient-to-r from-blue-50 to-white border border-blue-100">
+                <div class="w-full md:w-2/3">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Cari ID Penzakat</label>
+                    <form id="formSearchManage" class="flex gap-2" onsubmit="handleManageSearch(event)">
+                        <input list="payerIds" id="searchManageId" class="flex-1 px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none uppercase font-medium shadow-sm" placeholder="Contoh: Z20180001" required>
+                        <datalist id="payerIds"></datalist>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-sm">
+                            Cari
+                        </button>
+                    </form>
+                </div>
+                <div class="w-full md:w-1/3 text-sm text-slate-500 mb-2 md:mb-0">
+                    *Gunakan carian untuk menyenaraikan sejarah, kemaskini status dan tambah rekod pembayaran.
+                </div>
+            </div>
+
+            <!-- Result Section (Hidden until searched) -->
+            <div id="manageDetails" class="hidden animate-fade-in-up">
+                
+                <!-- Profile Header -->
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                        <span id="displayPayerId">Z20180000</span>
+                        <span id="displayPayerStatus" class="px-3 py-1 bg-slate-200 text-slate-700 text-sm font-bold rounded-full">Status</span>
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left Col: Forms (Status & Add Record) -->
+                    <div class="lg:col-span-1 space-y-6">
+                        
+                        <!-- Form: Kemaskini Status -->
+                        <div class="glass-card p-6 relative overflow-hidden">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Kemaskini Status</h3>
+                            <form id="formUpdateStatus" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Status Baru</label>
+                                    <select id="inputStatusVal" class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none" required>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                                    Simpan Status
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Form: Tambah Rekod -->
+                        <div class="glass-card p-6 relative overflow-hidden">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Tambah Rekod Baru</h3>
+                            <form id="formAddRecord" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tahun</label>
+                                        <input type="number" id="inputRecordYear" class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="YYYY" min="2000" max="2099" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Jumlah (RM)</label>
+                                        <input type="number" id="inputRecordAmount" class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="0.00" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Tarikh Bayar (Pilihan)</label>
+                                    <input type="date" id="inputRecordDate" class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                                </div>
+                                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                    Simpan Rekod
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Sejarah Pembayaran -->
+                    <div class="lg:col-span-2 glass-card p-0 overflow-hidden flex flex-col max-h-[600px]">
+                        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-slate-900">Sejarah Pembayaran</h3>
+                            <span id="manageHistoryCount" class="text-sm text-slate-500 font-medium">0 rekod</span>
+                        </div>
+                        <div class="overflow-y-auto overflow-x-auto w-full custom-scrollbar flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="sticky top-0 bg-slate-100/90 backdrop-blur z-10">
+                                    <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                                        <th class="px-6 py-4 font-semibold">Tahun</th>
+                                        <th class="px-6 py-4 font-semibold">Jumlah (RM)</th>
+                                        <th class="px-6 py-4 font-semibold">Tarikh Bayar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manageHistoryList">
+                                    <!-- Rows added dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modals (Custom Message Box) -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all text-center">
+            <div id="modalIcon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+                <!-- Icon dinamik -->
+            </div>
+            <h3 id="modalTitle" class="text-xl font-bold text-slate-900 mb-2"></h3>
+            <p id="modalMsg" class="text-slate-500 mb-8"></p>
+            <button onclick="closeModal()" class="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-blue-700 transition">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // URLs (Sama seperti fail carian)
+        const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn9DTv_2Un2dhds3AjeaSVblmudPDnILe2trAxtkWV0--av2BvlQWyCDub1rk2u4HpIQsv-92xg8Al/pub';
+        const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
+        const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
+
+        // CSV Parser Logic
+        function parseCSV(str) {
+            const arr = [];
+            let quote = false;
+            let row = 0, col = 0, c = 0;
+            for (row = col = c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || [];
+                arr[row][col] = arr[row][col] || '';
+                if (cc === '"' && quote && nc === '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { ++col; continue; }
+                if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                if (cc === '\n' && !quote) { ++row; col = 0; continue; }
+                if (cc === '\r' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+            if (arr.length === 0) return [];
+            const headers = arr[0].map(h => h.trim());
+            const data = [];
+            for (let i = 1; i < arr.length; i++) {
+                if (arr[i].length === 1 && arr[i][0] === "") continue;
+                let obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : '';
+                }
+                data.push(obj);
+            }
+            return data;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(amount);
+        }
+
+        let globalPayers = [];
+        let globalRecords = [];
+
+        // --- SILA MASUKKAN URL GOOGLE APPS SCRIPT WEB APP ANDA DI SINI ---
+        const URL_APPSCRIPT_WEBAPP = 'https://script.google.com/macros/s/AKfycbw8d_WYrCPxI4dw0B7CpTeVu-uBzTeoHLmMKMU1GW6w3yJow1_3vwlDCN-CHI6oW7IU/exec';
+
+        async function initializeDashboard() {
+            try {
+                const [payerRes, recordsRes] = await Promise.all([
+                    fetch(URL_PAYER_LIST),
+                    fetch(URL_PAYMENT_RECORDS)
+                ]);
+
+                globalPayers = parseCSV(await payerRes.text());
+                globalRecords = parseCSV(await recordsRes.text());
+
+                processDataAndRender();
+                populateForms();
+                
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            } catch (error) {
+                console.error("Error loading admin data:", error);
+                showModal("Ralat", "Gagal memuat turun data dari pelayan.", "error");
+            }
+        }
+
+        function processDataAndRender() {
+            // Metrics Calculations
+            const totalPayers = globalPayers.length;
+            const activePayers = globalPayers.filter(p => (p.STATUS || '').toLowerCase() === 'active').length;
+            
+            let totalAmount = 0;
+            const yearlyData = {}; // Format: { "2018": { amount: 1500, count: 5 } }
+
+            globalRecords.forEach(record => {
+                const amount = parseFloat(record.JUMLAH) || 0;
+                const year = record.TAHUN;
+                
+                totalAmount += amount;
+                
+                if (year) {
+                    if (!yearlyData[year]) yearlyData[year] = { amount: 0, count: 0 };
+                    yearlyData[year].amount += amount;
+                    yearlyData[year].count += 1;
+                }
+            });
+
+            // Update DOM Metrics
+            document.getElementById('metricTotalPayers').textContent = totalPayers;
+            document.getElementById('metricActivePayers').textContent = activePayers;
+            document.getElementById('metricTotalAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('metricTotalTransactions').textContent = globalRecords.length;
+
+            renderCharts(yearlyData);
+        }
+
+        function renderCharts(yearlyData) {
+            // Sediakan data (Sort array ikut tahun)
+            const sortedYears = Object.keys(yearlyData).sort();
+            const amounts = sortedYears.map(year => yearlyData[year].amount);
+            const counts = sortedYears.map(year => yearlyData[year].count);
+
+            // Musnahkan carta lama jika ada (mengelakkan glitch ketika reload)
+            const chart1 = Chart.getChart("barChart");
+            if (chart1) chart1.destroy();
+            const chart2 = Chart.getChart("lineChart");
+            if (chart2) chart2.destroy();
+
+            // Setup Bar Chart (Kutipan RM)
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: sortedYears,
+                    datasets: [{
+                        label: 'Jumlah Kutipan (RM)',
+                        data: amounts,
+                        backgroundColor: 'rgba(37, 99, 235, 0.8)', // Tailwind blue-600
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Setup Line Chart (Kekerapan/Regression)
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: sortedYears,
+                    datasets: [{
+                        label: 'Bilangan Transaksi',
+                        data: counts,
+                        borderColor: 'rgba(16, 185, 129, 1)', // Tailwind emerald-500
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function switchTab(tabName) {
+            const tabDashboard = document.getElementById('tabDashboard');
+            const tabManage = document.getElementById('tabManage');
+            const btnTabDashboard = document.getElementById('btnTabDashboard');
+            const btnTabManage = document.getElementById('btnTabManage');
+
+            if (tabName === 'dashboard') {
+                tabDashboard.classList.remove('hidden');
+                tabManage.classList.add('hidden');
+                btnTabDashboard.className = "px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none transition-colors";
+                btnTabManage.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-blue-600 font-semibold focus:outline-none transition-colors";
+            } else {
+                tabDashboard.classList.add('hidden');
+                tabManage.classList.remove('hidden');
+                btnTabManage.className = "px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-semibold focus:outline-none transition-colors";
+                btnTabDashboard.className = "px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-blue-600 font-semibold focus:outline-none transition-colors";
+            }
+        }
+
+        let selectedPayerId = null;
+
+        function populateForms() {
+            const datalist = document.getElementById('payerIds');
+            datalist.innerHTML = '';
+
+            // Susun ID alphabetically
+            const sortedPayers = [...globalPayers].sort((a, b) => (a.ID || '').localeCompare(b.ID || ''));
+
+            sortedPayers.forEach(p => {
+                if(!p.ID) return;
+                const opt = document.createElement('option');
+                opt.value = p.ID;
+                datalist.appendChild(opt);
+            });
+
+            // Set default year
+            document.getElementById('inputRecordYear').value = new Date().getFullYear();
+        }
+        
+        function handleManageSearch(e) {
+            if(e) e.preventDefault();
+            const id = document.getElementById('searchManageId').value.trim().toUpperCase();
+            if(!id) return;
+
+            const payer = globalPayers.find(p => p.ID && p.ID.toUpperCase() === id);
+            
+            if (!payer) {
+                showModal("Tidak Dijumpai", `ID '${id}' tiada dalam rekod. Sila pastikan ejaan betul.`, "error");
+                document.getElementById('manageDetails').classList.add('hidden');
+                return;
+            }
+
+            selectedPayerId = payer.ID;
+            document.getElementById('manageDetails').classList.remove('hidden');
+            
+            // 1. Update Header Information
+            document.getElementById('displayPayerId').textContent = payer.ID;
+            
+            // Format Status Select Form
+            const statusVal = payer.STATUS ? payer.STATUS.charAt(0).toUpperCase() + payer.STATUS.slice(1).toLowerCase() : 'Inactive';
+            document.getElementById('inputStatusVal').value = statusVal;
+            
+            // Update Visual Badge
+            const badge = document.getElementById('displayPayerStatus');
+            if((payer.STATUS || '').toLowerCase() === 'active') {
+                badge.textContent = 'Active';
+                badge.className = 'px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full border border-green-200';
+            } else {
+                badge.textContent = 'Inactive';
+                badge.className = 'px-3 py-1 bg-red-100 text-red-700 text-sm font-bold rounded-full border border-red-200';
+            }
+
+            // 2. Render Payment History
+            let userRecords = globalRecords.filter(r => r.ID && r.ID.toUpperCase() === id);
+            userRecords = userRecords.sort((a, b) => parseInt(b.TAHUN || 0) - parseInt(a.TAHUN || 0));
+            
+            document.getElementById('manageHistoryCount').textContent = `${userRecords.length} rekod`;
+            
+            const tbody = document.getElementById('manageHistoryList');
+            tbody.innerHTML = '';
+            
+            if(userRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-slate-500 italic">Tiada rekod pembayaran dijumpai untuk penzakat ini.</td></tr>';
+            } else {
+                userRecords.forEach(r => {
+                    const row = `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-semibold text-slate-800">${r.TAHUN}</td>
+                            <td class="px-6 py-4 font-bold text-emerald-600">${formatCurrency(parseFloat(r.JUMLAH) || 0)}</td>
+                            <td class="px-6 py-4 text-slate-500 text-sm">${r.TARIKH_BAYAR || '-'}</td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+        }
+
+        // Action: Submit Update Status (Live ke Google Sheet)
+        document.getElementById('formUpdateStatus').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const status = document.getElementById('inputStatusVal').value;
+            const btnSubmit = this.querySelector('button[type="submit"]');
+            const originalText = btnSubmit.innerText;
+            
+            // Loading state
+            btnSubmit.innerText = "Menyimpan...";
+            btnSubmit.disabled = true;
+            btnSubmit.classList.add('opacity-75');
+
+            try {
+                if(URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') {
+                    throw new Error("Sila tetapkan URL_APPSCRIPT_WEBAPP di dalam fail HTML terlebih dahulu.");
+                }
+
+                // API Request menggunakan text/plain utk elak ralat CORS (Preflight) Apps Script
+                const response = await fetch(URL_APPSCRIPT_WEBAPP, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'updateStatus',
+                        id: selectedPayerId,
+                        status: status
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showModal("Berjaya", result.message, "success");
+                    
+                    // Visual Update in frontend
+                    const badge = document.getElementById('displayPayerStatus');
+                    badge.textContent = status;
+                    badge.className = status === 'Active' 
+                        ? 'px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full border border-green-200' 
+                        : 'px-3 py-1 bg-red-100 text-red-700 text-sm font-bold rounded-full border border-red-200';
+                        
+                    // Update dalam memori global supaya tak hilang jika user search balik
+                    const index = globalPayers.findIndex(p => p.ID === selectedPayerId);
+                    if(index !== -1) globalPayers[index].STATUS = status;
+                    
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                showModal("Ralat", "Gagal menyimpan status: " + error.message, "error");
+            } finally {
+                btnSubmit.innerText = originalText;
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-75');
+            }
+        });
+
+        // Action: Submit Add Record (Live ke Google Sheet)
+        document.getElementById('formAddRecord').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const year = document.getElementById('inputRecordYear').value;
+            const amount = document.getElementById('inputRecordAmount').value;
+            const date = document.getElementById('inputRecordDate').value;
+            
+            const btnSubmit = this.querySelector('button[type="submit"]');
+            const originalHTML = btnSubmit.innerHTML;
+            
+            btnSubmit.innerHTML = "Menyimpan...";
+            btnSubmit.disabled = true;
+            btnSubmit.classList.add('opacity-75');
+
+            try {
+                if(URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') {
+                    throw new Error("Sila tetapkan URL_APPSCRIPT_WEBAPP di dalam fail HTML terlebih dahulu.");
+                }
+
+                // Format tarikh jika kosong kepada harini
+                const finalDate = date || new Date().toISOString().split('T')[0];
+
+                const response = await fetch(URL_APPSCRIPT_WEBAPP, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'addRecord',
+                        id: selectedPayerId,
+                        year: year,
+                        amount: amount,
+                        date: finalDate
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showModal("Rekod Disimpan", `Rekod RM${amount} (Tahun ${year}) untuk ${selectedPayerId} telah selamat ditulis ke dalam pangkalan data.`, "success");
+                    
+                    this.reset();
+                    document.getElementById('inputRecordYear').value = new Date().getFullYear(); 
+                    
+                    // Visual Update in table
+                    const tbody = document.getElementById('manageHistoryList');
+                    if(tbody.innerHTML.includes('Tiada rekod pembayaran')) tbody.innerHTML = ''; 
+                    
+                    const row = `
+                        <tr class="border-b border-emerald-100 bg-emerald-50/50">
+                            <td class="px-6 py-4 font-semibold text-slate-800">${year}</td>
+                            <td class="px-6 py-4 font-bold text-emerald-600">${formatCurrency(parseFloat(amount) || 0)}</td>
+                            <td class="px-6 py-4 text-slate-500 text-sm">${finalDate} <span class="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-200 px-2 py-0.5 rounded uppercase tracking-wider">Baru</span></td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('afterbegin', row); 
+                    
+                    // Tambah data ke memori sementara (agar dashboard reflect lepas search lagi)
+                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: finalDate });
+
+                    // Update counter
+                    const countElem = document.getElementById('manageHistoryCount');
+                    const currentCount = parseInt(countElem.textContent) || 0;
+                    countElem.textContent = `${currentCount + 1} rekod`;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch(error) {
+                showModal("Ralat Sistem", "Gagal menyimpan rekod: " + error.message, "error");
+            } finally {
+                btnSubmit.innerHTML = originalHTML;
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-75');
+            }
+        });
+
+        function showModal(title, msg, type) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMsg').innerText = msg;
+            
+            const iconDiv = document.getElementById('modalIcon');
+            if (type === 'success') {
+                iconDiv.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-600 mb-6";
+                iconDiv.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else {
+                iconDiv.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-600 mb-6";
+                iconDiv.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        // Jalankan apabila DOM bersedia
+        window.onload = initializeDashboard;
+
+    </script>
+</body>
+</html>
