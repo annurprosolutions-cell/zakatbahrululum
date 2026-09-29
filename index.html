@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sistem Carian Zakat</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e428c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Zakat">
+    
+    <!-- Menggunakan Tailwind CSS melalui CDN untuk antaramuka yang pantas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 46, 96, 0.5); 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e428c; 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #2a5bb5; 
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 text-slate-800 flex flex-col items-center">
+
+    <!-- Header & Search Area -->
+    <div class="w-full max-w-5xl mb-8">
+        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-200/60">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Semakan Zakat</h1>
+                <p class="text-slate-500 mt-1">Sistem carian rekod pembayaran penzakat berdaftar.</p>
+            </div>
+            
+            <form id="searchForm" class="w-full md:w-auto flex gap-2">
+                <div class="relative w-full md:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all shadow-inner font-medium text-slate-700 uppercase"
+                        placeholder="ID Penzakat (Contoh: Z20180001)"
+                        required
+                    />
+                </div>
+                <button 
+                    type="submit" 
+                    id="searchBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-semibold transition-colors shadow-sm flex items-center justify-center min-w-[100px]"
+                >
+                    <span id="btnText">Semak</span>
+                    <svg id="btnLoader" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- Error Container -->
+        <div id="errorContainer" class="hidden mt-4 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-3 shadow-sm animate-fade-in-up">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="errorText" class="font-medium"></span>
+        </div>
+    </div>
+
+    <!-- Result Dashboard Container -->
+    <div id="resultContainer" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start hidden">
+        
+        <!-- KIRI: Ringkasan Card -->
+        <div class="lg:col-span-4 bg-white rounded-[2rem] shadow-sm border border-slate-200/50 p-8 flex flex-col items-center relative overflow-hidden animate-fade-in-up">
+            <div class="w-full flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold text-slate-800">Ringkasan saya</h2>
+                <button class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">Lihat Semua</button>
+            </div>
+
+            <!-- Circular Progress -->
+            <div class="relative w-40 h-40 flex items-center justify-center mb-6">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="50" stroke-linecap="round" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="statTotalTrans" class="text-4xl font-bold text-slate-800">00</span>
+                    <span class="text-xs text-slate-500 font-medium mt-1 uppercase tracking-wider">Rekod</span>
+                </div>
+                <div id="statStatus" class="absolute -bottom-2 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+                    Status: -
+                </div>
+            </div>
+
+            <h3 id="statId" class="text-2xl font-bold text-slate-900 mt-2">ID: -</h3>
+            <p class="text-slate-500 font-medium mb-8">Pematuhan Zakat Tahunan</p>
+
+            <div class="w-full grid grid-cols-3 gap-2 mb-6">
+                <div class="h-2 rounded-full bg-green-500 w-full"></div>
+                <div class="h-2 rounded-full bg-blue-500 w-full"></div>
+                <div class="h-2 rounded-full bg-slate-200 w-full"></div>
+            </div>
+
+            <div class="w-full grid grid-cols-3 gap-2 text-center mt-auto border-t border-slate-100 pt-6">
+                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <span id="statTransKecil" class="text-lg font-bold text-slate-800">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Transaksi</span>
+                </div>
+                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <span id="statTahunAktif" class="text-lg font-bold text-slate-800">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Thn Aktif</span>
+                </div>
+                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <span id="statTerkini" class="text-sm font-bold text-slate-800 line-clamp-1">-</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Terkini</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KANAN: Senarai Rekod -->
+        <div class="lg:col-span-8 bg-[#041a4a] rounded-[2rem] shadow-xl p-6 md:p-8 text-white relative animate-fade-in-up" style="animation-delay: 0.1s;">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Rekod Pembayaran</h2>
+                    <p id="recordCountText" class="text-blue-200 mt-1">0 rekod dijumpai</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-blue-200 font-medium">Jumlah Keseluruhan</p>
+                    <p id="totalAmountText" class="text-2xl font-bold text-emerald-400">RM0.00</p>
+                </div>
+            </div>
+
+            <!-- List Container -->
+            <div id="recordsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- Rekod akan dimasukkan di sini melalui JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets URLs
+        const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn9DTv_2Un2dhds3AjeaSVblmudPDnILe2trAxtkWV0--av2BvlQWyCDub1rk2u4HpIQsv-92xg8Al/pub';
+        const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
+        const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
+
+        // CSV Parser Logic (Sama macam React tadi)
+        function parseCSV(str) {
+            const arr = [];
+            let quote = false;
+            let row = 0, col = 0, c = 0;
+            for (row = col = c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || [];
+                arr[row][col] = arr[row][col] || '';
+                if (cc === '"' && quote && nc === '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { ++col; continue; }
+                if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                if (cc === '\n' && !quote) { ++row; col = 0; continue; }
+                if (cc === '\r' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+            
+            if (arr.length === 0) return [];
+            
+            const headers = arr[0].map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < arr.length; i++) {
+                if (arr[i].length === 1 && arr[i][0] === "") continue;
+                let obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : '';
+                }
+                data.push(obj);
+            }
+            return data;
+        }
+
+        // Format matawang MYR
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(amount);
+        }
+
+        // DOM Elements
+        const form = document.getElementById('searchForm');
+        const input = document.getElementById('searchInput');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const searchBtn = document.getElementById('searchBtn');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorText = document.getElementById('errorText');
+        const resultContainer = document.getElementById('resultContainer');
+        
+        // DOM Elements untuk Kad Ringkasan
+        const statTotalTrans = document.getElementById('statTotalTrans');
+        const statStatus = document.getElementById('statStatus');
+        const statId = document.getElementById('statId');
+        const statTransKecil = document.getElementById('statTransKecil');
+        const statTahunAktif = document.getElementById('statTahunAktif');
+        const statTerkini = document.getElementById('statTerkini');
+        
+        // DOM Elements untuk Senarai Rekod
+        const recordCountText = document.getElementById('recordCountText');
+        const totalAmountText = document.getElementById('totalAmountText');
+        const recordsList = document.getElementById('recordsList');
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                btnText.classList.add('hidden');
+                btnLoader.classList.remove('hidden');
+                searchBtn.disabled = true;
+                searchBtn.classList.add('opacity-70');
+            } else {
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                searchBtn.disabled = false;
+                searchBtn.classList.remove('opacity-70');
+            }
+        }
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorContainer.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+        }
+
+        // --- PWA SETUP (Manifest & Service Worker dicipta secara On-The-Fly) ---
+        const setupPWA = () => {
+            // 1. Cipta Icon SVG untuk Manifest
+            const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231e428c'/><text x='50%' y='50%' font-family='sans-serif' font-size='250' font-weight='bold' fill='white' dominant-baseline='middle' text-anchor='middle'>Z</text></svg>`;
+            
+            // 2. Cipta Manifest JSON
+            const manifest = {
+                name: "Sistem Semakan Zakat",
+                short_name: "Zakat",
+                description: "Sistem carian rekod pembayaran penzakat",
+                start_url: location.href,
+                display: "standalone",
+                background_color: "#f1f5f9",
+                theme_color: "#1e428c",
+                icons: [{ 
+                    src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconSvg), 
+                    sizes: "512x512", 
+                    type: "image/svg+xml", 
+                    purpose: "any maskable" 
+                }]
+            };
+            
+            // 3. Pasang Manifest ke dalam <head> menggunakan Blob
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+
+            // Nota: Pendaftaran Service Worker melalui Blob URL telah dibuang untuk mengelakkan 
+            // sekatan keselamatan browser (Protocol not supported error).
+            // Apabila di-host nanti, cipta satu fail sw.js berasingan untuk offline cache yang sebenar.
+            console.info("PWA Manifest dimuatkan. Untuk sokongan Service Worker, fail 'sw.js' berasingan diperlukan.");
+        };
+        // Jalankan pemasangan PWA
+        setupPWA();
+
+        // Search Logic
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const queryId = input.value.trim().toUpperCase();
+            
+            if (!queryId) return;
+
+            // Semak jika pengguna Tiada Talian Internet (Offline)
+            if (!navigator.onLine) {
+                showError('Peranti anda di luar talian (Offline). Sila sambung ke internet untuk membuat carian.');
+                return;
+            }
+
+            setLoading(true);
+            errorContainer.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                // Fetch kedua-dua fail serentak (Parallel fetching)
+                const [payerRes, recordsRes] = await Promise.all([
+                    fetch(URL_PAYER_LIST),
+                    fetch(URL_PAYMENT_RECORDS)
+                ]);
+
+                if (!payerRes.ok || !recordsRes.ok) throw new Error("Gagal menyambung ke Google Sheets.");
+
+                const payerCSV = await payerRes.text();
+                const recordsCSV = await recordsRes.text();
+
+                const payers = parseCSV(payerCSV);
+                const records = parseCSV(recordsCSV);
+
+                // Cari user
+                const foundPayer = payers.find(p => p.ID && p.ID.toUpperCase() === queryId);
+                
+                if (!foundPayer) {
+                    showError(`ID '${queryId}' tidak dijumpai dalam rekod penzakat.`);
+                    setLoading(false);
+                    return;
+                }
+
+                // Cari rekod & urus (Sort by Year Descending)
+                let userRecords = records.filter(r => r.ID && r.ID.toUpperCase() === queryId);
+                userRecords = userRecords.sort((a, b) => parseInt(b.TAHUN || 0) - parseInt(a.TAHUN || 0));
+
+                // Kira statistik
+                let totalRM = 0;
+                const yearsSet = new Set();
+                
+                userRecords.forEach(record => {
+                    totalRM += parseFloat(record.JUMLAH) || 0;
+                    if (record.TAHUN) yearsSet.add(record.TAHUN);
+                });
+
+                // Update UI: Ringkasan
+                statId.textContent = `ID: ${foundPayer.ID}`;
+                statStatus.textContent = `Status: ${foundPayer.STATUS || 'Tiada'}`;
+                
+                // Set warna status
+                if((foundPayer.STATUS || '').toLowerCase() === 'active') {
+                    statStatus.className = "absolute -bottom-2 bg-green-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
+                } else {
+                    statStatus.className = "absolute -bottom-2 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
+                }
+
+                const transCount = userRecords.length;
+                statTotalTrans.textContent = transCount < 10 ? `0${transCount}` : transCount;
+                statTransKecil.textContent = transCount;
+                statTahunAktif.textContent = yearsSet.size;
+                statTerkini.textContent = transCount > 0 ? userRecords[0].TAHUN : '-';
+
+                // Update UI: Rekod
+                recordCountText.textContent = `${transCount} rekod dijumpai untuk ID ini`;
+                totalAmountText.textContent = formatCurrency(totalRM);
+
+                // Render List Html
+                recordsList.innerHTML = ''; // Clear lama
+                
+                if (transCount === 0) {
+                    recordsList.innerHTML = `
+                        <div class="text-center py-12 bg-[#092765] rounded-2xl border border-[#1e428c] border-dashed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <p class="text-blue-200 text-lg">Tiada rekod pembayaran dijumpai.</p>
+                        </div>
+                    `;
+                } else {
+                    userRecords.forEach(record => {
+                        const amountFormatted = formatCurrency(parseFloat(record.JUMLAH) || 0);
+                        const tarikh = record.TARIKH_BAYAR || 'Tarikh tidak direkodkan';
+                        
+                        const itemHtml = `
+                            <div class="bg-[#092765] hover:bg-[#0c317c] transition-colors duration-200 rounded-[1.5rem] p-5 flex flex-col md:flex-row items-start md:items-center justify-between border border-[#1e428c] gap-4">
+                                <div class="flex items-center gap-5">
+                                    <div class="bg-[#1e428c] w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-inner flex-shrink-0">
+                                        <span class="text-xs text-blue-200 font-bold uppercase tracking-wider mb-0.5">Tahun</span>
+                                        <span class="text-xl font-bold text-white leading-none">${record.TAHUN}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-2xl font-bold text-white mb-1">${amountFormatted}</h4>
+                                        <div class="flex items-center text-blue-200 text-sm gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            ${tarikh}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-auto flex justify-end">
+                                    <div class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        Selesai
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        recordsList.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }
+
+                // Tunjuk Dashboard
+                resultContainer.classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Fetch error:", err);
+                showError('Berlaku ralat sistem. Sila cuba sebentar lagi.');
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
