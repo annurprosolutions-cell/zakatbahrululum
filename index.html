@@ -3,171 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Sistem Carian Zakat</title>
+    <title>Sistem Zakat Bahrul Ulum</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#1e428c">
+    <meta name="theme-color" content="#115e59">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Zakat">
     
-    <!-- Menggunakan Tailwind CSS melalui CDN untuk antaramuka yang pantas -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* slate-100 */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
+            background-color: #f0fdfa; /* teal-50 */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 46, 96, 0.5); 
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1e428c; 
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #2a5bb5; 
-        }
+        /* Takaful Green Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(17, 94, 89, 0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0f766e; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #115e59; }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up {
-            animation: fadeInUp 0.3s ease-out forwards;
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* Ticker Animation */
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+        .animate-ticker {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker 25s linear infinite;
+        }
+
+        /* Hide elements dynamically */
+        .tab-hidden { display: none !important; }
+
+        /* Bottom Nav Safe Area for iOS */
+        .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 5rem); }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 text-slate-800 flex flex-col items-center">
+<body class="min-h-screen text-slate-800 flex flex-col pb-safe">
 
-    <!-- Header & Search Area -->
-    <div class="w-full max-w-5xl mb-8">
-        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-200/60">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Semakan Zakat</h1>
-                <p class="text-slate-500 mt-1">Sistem carian rekod pembayaran penzakat berdaftar.</p>
-            </div>
+    <!-- OVERLAY LOADING GLOBAL -->
+    <div id="globalLoader" class="fixed inset-0 bg-teal-900/90 z-[70] flex flex-col justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <svg class="animate-spin h-12 w-12 text-emerald-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <p class="text-teal-50 font-medium text-lg">Memuatkan Sistem...</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: UTAMA (DASHBOARD)                   -->
+    <!-- ========================================== -->
+    <div id="viewHome" class="w-full max-w-lg mx-auto md:max-w-3xl lg:max-w-5xl animate-fade-in-up">
+        
+        <!-- Hero Section (Takaful Green Theme) -->
+        <div class="relative bg-teal-800 pb-12 pt-10 px-6 rounded-b-[2.5rem] shadow-xl overflow-hidden">
+            <!-- Background Pattern/Image Overlay -->
+            <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
             
-            <form id="searchForm" class="w-full md:w-auto flex gap-2">
-                <div class="relative w-full md:w-80">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div class="relative z-10">
+                <!-- Header (Logo) -->
+                <div class="flex justify-between items-center mb-8">
+                    <img src="https://i.postimg.cc/sxHMhZ84/image.png" alt="Logo" class="h-12 bg-white/10 p-1.5 rounded-xl backdrop-blur-sm shadow-sm">
+                    <div class="w-10 h-10 bg-teal-700/50 rounded-full flex items-center justify-center backdrop-blur text-white border border-teal-600/50 cursor-pointer shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                     </div>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all shadow-inner font-medium text-slate-700 uppercase"
-                        placeholder="ID Penzakat (Contoh: Z20180001)"
-                        required
-                    />
                 </div>
-                <button 
-                    type="submit" 
-                    id="searchBtn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-semibold transition-colors shadow-sm flex items-center justify-center min-w-[100px]"
-                >
-                    <span id="btnText">Semak</span>
-                    <svg id="btnLoader" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </button>
-            </form>
+
+                <!-- Greeting -->
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-900/60 border border-teal-600/50 rounded-full text-xs font-bold text-emerald-300 uppercase tracking-widest mb-3 shadow-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                        Sistem Pintar
+                    </span>
+                    <h1 class="text-3xl font-extrabold text-white mb-2">Selamat Datang,</h1>
+                    <p class="text-teal-100/90 text-sm md:text-base font-medium">Urus dan semak rekod zakat anda dengan mudah dan selamat.</p>
+                </div>
+
+                <!-- Floating Card: Jom Zakat Hari Ini -->
+                <div class="mt-8 bg-teal-900/80 backdrop-blur-md border border-teal-600/50 p-5 rounded-[1.5rem] flex flex-row justify-between items-center shadow-xl">
+                    <div>
+                        <p class="text-teal-200 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                            Pautan Pantas
+                        </p>
+                        <p class="text-white font-bold text-xl">Jom Zakat Hari Ini</p>
+                    </div>
+                    <a href="https://bahrululum.edu.my/page/pagedetail.php?schid=579&schname=ZAKAT" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-teal-950 px-5 py-3 rounded-full text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
+                        Bayar 
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <!-- Error Container -->
-        <div id="errorContainer" class="hidden mt-4 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-3 shadow-sm animate-fade-in-up">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="errorText" class="font-medium"></span>
+        <!-- TICKER MAKLUMAN AWAM -->
+        <div class="relative z-20 px-6 -mt-4 mb-4 max-w-lg mx-auto md:max-w-full">
+            <div class="bg-white rounded-full overflow-hidden flex items-center shadow-[0_4px_15px_rgba(17,94,89,0.1)] border border-teal-100">
+                <div class="bg-teal-600 text-white text-xs font-bold px-4 py-2.5 z-10 flex items-center gap-1.5 shadow-[4px_0_10px_rgba(0,0,0,0.1)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-pulse" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>
+                    MAKLUMAN
+                </div>
+                <div class="flex-1 overflow-hidden relative h-9 flex items-center bg-teal-50/50">
+                    <div class="animate-ticker text-teal-800 text-sm font-medium inline-block w-full">
+                        🌟 Tunaikan zakat anda untuk menyucikan harta dan jiwa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 📢 Peringatan: Bayar zakat sebelum 31 Disember untuk kelayakan rebat cukai pendapatan tahun semasa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 🕌 Kempen Zakat Bahrul Ulum 2026 kini berlangsung. Ayuh menyumbang!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Cards -->
+        <div class="px-6 relative z-20 grid grid-cols-2 gap-4">
+            <!-- Card 1: Semak Zakat -->
+            <button onclick="switchTab('search')" class="bg-white p-5 rounded-[1.5rem] shadow-lg shadow-teal-900/5 border border-teal-50 flex flex-col items-start hover:-translate-y-1 transition-transform text-left group">
+                <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                </div>
+                <h3 class="font-bold text-slate-800 text-lg">Semak Zakat</h3>
+                <p class="text-slate-400 text-xs mt-1 font-medium leading-relaxed">Semak sejarah & status.</p>
+            </button>
+            
+            <!-- Card 2: Kalkulator -->
+            <button onclick="openKalkulator()" class="bg-white p-5 rounded-[1.5rem] shadow-lg shadow-teal-900/5 border border-teal-50 flex flex-col items-start hover:-translate-y-1 transition-transform text-left group">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                </div>
+                <h3 class="font-bold text-slate-800 text-lg">Kalkulator</h3>
+                <p class="text-slate-400 text-xs mt-1 font-medium leading-relaxed">Kira anggaran zakat.</p>
+            </button>
+        </div>
+
+        <!-- Dashboard Statistics -->
+        <div class="px-6 mt-8 mb-6">
+            <h2 class="text-lg font-bold text-teal-950 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
+                Ringkasan Zakat
+            </h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <!-- Stat 1 -->
+                <div class="bg-white rounded-2xl p-4 border border-teal-100/50 shadow-sm flex flex-col justify-center">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Penzakat</p>
+                    <h3 id="statTotalPayers" class="text-2xl font-black text-teal-800">0</h3>
+                </div>
+                <!-- Stat 2 -->
+                <div class="bg-teal-600 rounded-2xl p-4 shadow-md flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-teal-500/50 rounded-full blur-xl"></div>
+                    <p class="text-teal-100 text-xs font-bold uppercase tracking-wider mb-1">Kutipan Semasa</p>
+                    <h3 id="statTotalAmount" class="text-2xl font-black text-white">RM 0</h3>
+                </div>
+            </div>
+
+            <!-- Chart Card -->
+            <div class="bg-white rounded-[1.5rem] p-5 shadow-sm border border-teal-100/50">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-800">Prestasi Kutipan 5 Tahun</h3>
+                </div>
+                <div class="relative h-48 w-full">
+                    <canvas id="homeChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Result Dashboard Container -->
-    <div id="resultContainer" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start hidden">
+    <!-- ========================================== -->
+    <!-- TAB 2: SEMAKAN (SEARCH)                    -->
+    <!-- ========================================== -->
+    <div id="viewSearch" class="w-full max-w-5xl mx-auto p-4 md:p-8 tab-hidden">
         
-        <!-- KIRI: Ringkasan Card -->
-        <div class="lg:col-span-4 bg-white rounded-[2rem] shadow-sm border border-slate-200/50 p-8 flex flex-col items-center relative overflow-hidden animate-fade-in-up">
-            <div class="w-full flex justify-between items-center mb-8">
-                <h2 class="text-xl font-bold text-slate-800">Ringkasan saya</h2>
-                <button class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">Lihat Semua</button>
-            </div>
+        <!-- Header & Search Area -->
+        <div class="w-full mb-6 animate-fade-in-up">
+            <!-- Back Button -->
+            <button onclick="switchTab('home')" class="mb-4 inline-flex items-center gap-2 text-teal-700 font-bold text-sm bg-teal-100/50 px-4 py-2 rounded-full hover:bg-teal-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                Kembali
+            </button>
 
-            <!-- Circular Progress -->
-            <div class="relative w-40 h-40 flex items-center justify-center mb-6">
-                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8" />
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="50" stroke-linecap="round" />
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span id="statTotalTrans" class="text-4xl font-bold text-slate-800">00</span>
-                    <span class="text-xs text-slate-500 font-medium mt-1 uppercase tracking-wider">Rekod</span>
-                </div>
-                <div id="statStatus" class="absolute -bottom-2 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
-                    Status: -
-                </div>
-            </div>
-
-            <h3 id="statId" class="text-2xl font-bold text-slate-900 mt-2">ID: -</h3>
-            <p class="text-slate-500 font-medium mb-8">Pematuhan Zakat Tahunan</p>
-
-            <div class="w-full grid grid-cols-3 gap-2 mb-6">
-                <div class="h-2 rounded-full bg-green-500 w-full"></div>
-                <div class="h-2 rounded-full bg-blue-500 w-full"></div>
-                <div class="h-2 rounded-full bg-slate-200 w-full"></div>
-            </div>
-
-            <div class="w-full grid grid-cols-3 gap-2 text-center mt-auto border-t border-slate-100 pt-6">
-                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </div>
-                    <span id="statTransKecil" class="text-lg font-bold text-slate-800">0</span>
-                    <span class="text-[10px] uppercase font-bold text-slate-400">Transaksi</span>
-                </div>
-                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
-                    <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </div>
-                    <span id="statTahunAktif" class="text-lg font-bold text-slate-800">0</span>
-                    <span class="text-[10px] uppercase font-bold text-slate-400">Thn Aktif</span>
-                </div>
-                <div class="flex flex-col items-center p-2 rounded-2xl bg-slate-50">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    </div>
-                    <span id="statTerkini" class="text-sm font-bold text-slate-800 line-clamp-1">-</span>
-                    <span class="text-[10px] uppercase font-bold text-slate-400">Terkini</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- KANAN: Senarai Rekod -->
-        <div class="lg:col-span-8 bg-[#041a4a] rounded-[2rem] shadow-xl p-6 md:p-8 text-white relative animate-fade-in-up" style="animation-delay: 0.1s;">
-            <div class="flex justify-between items-end mb-6">
+            <div class="bg-white rounded-[2rem] shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-teal-100/60 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+                
                 <div>
-                    <h2 class="text-2xl font-bold text-white tracking-wide">Rekod Pembayaran</h2>
-                    <p id="recordCountText" class="text-blue-200 mt-1">0 rekod dijumpai</p>
+                    <h1 class="text-3xl font-extrabold text-teal-900 tracking-tight">Semakan Zakat</h1>
+                    <p class="text-slate-500 mt-1 font-medium">Sistem carian rekod pembayaran penzakat berdaftar.</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm text-blue-200 font-medium">Jumlah Keseluruhan</p>
-                    <p id="totalAmountText" class="text-2xl font-bold text-emerald-400">RM0.00</p>
+                
+                <form id="searchForm" class="w-full md:w-auto flex gap-2 relative z-10">
+                    <div class="relative w-full md:w-80">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </div>
+                        <input type="text" id="searchInput" class="w-full pl-11 pr-4 py-3.5 bg-teal-50/50 border border-teal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 focus:bg-white transition-all font-bold text-teal-900 uppercase placeholder:font-medium placeholder:text-teal-300" placeholder="ID PENZAKAT (Cth: Z20180001)" required autocomplete="off" />
+                    </div>
+                    <button type="submit" id="searchBtn" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3.5 rounded-2xl font-bold transition-colors shadow-md shadow-teal-600/30 flex items-center justify-center min-w-[100px]">
+                        Semak
+                    </button>
+                </form>
+            </div>
+
+            <!-- Error Container -->
+            <div id="errorContainer" class="hidden mt-4 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-3 shadow-sm animate-fade-in-up">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="errorText" class="font-medium"></span>
+            </div>
+        </div>
+
+        <!-- Result Dashboard Container -->
+        <div id="resultContainer" class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start hidden">
+            
+            <!-- KIRI: Ringkasan Card -->
+            <div class="lg:col-span-4 bg-white rounded-[2rem] shadow-sm border border-teal-100/50 p-8 flex flex-col items-center relative overflow-hidden animate-fade-in-up">
+                <div class="w-full flex justify-between items-center mb-8">
+                    <h2 class="text-xl font-bold text-teal-900">Ringkasan saya</h2>
+                </div>
+
+                <!-- Circular Visual -->
+                <div class="relative w-40 h-40 flex items-center justify-center mb-6">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#0d9488" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="50" stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="statTotalTrans" class="text-4xl font-black text-teal-900">00</span>
+                        <span class="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Rekod</span>
+                    </div>
+                    <div id="statStatus" class="absolute -bottom-2 bg-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+                        Status: -
+                    </div>
+                </div>
+
+                <h3 id="statId" class="text-2xl font-bold text-slate-900 mt-2">ID: -</h3>
+                <p class="text-slate-500 font-medium mb-8">Pematuhan Zakat Tahunan</p>
+
+                <!-- Stats Row -->
+                <div class="w-full grid grid-cols-3 gap-2 text-center mt-auto border-t border-teal-50 pt-6">
+                    <div class="flex flex-col items-center p-2 rounded-2xl bg-teal-50/50">
+                        <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <span id="statTransKecil" class="text-lg font-bold text-slate-800">0</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Transaksi</span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 rounded-2xl bg-amber-50/50">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <span id="statTahunAktif" class="text-lg font-bold text-slate-800">0</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Thn Aktif</span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 rounded-2xl bg-emerald-50/50">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <span id="statTerkini" class="text-sm font-bold text-slate-800 line-clamp-1">-</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Terkini</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- List Container -->
-            <div id="recordsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Rekod akan dimasukkan di sini melalui JavaScript -->
+            <!-- KANAN: Senarai Rekod (Takaful Dark Theme) -->
+            <div class="lg:col-span-8 bg-[#004d40] rounded-[2rem] shadow-xl p-6 md:p-8 text-white relative animate-fade-in-up" style="animation-delay: 0.1s;">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] rounded-[2rem] pointer-events-none"></div>
+                
+                <div class="flex justify-between items-end mb-6 relative z-10">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white tracking-wide">Rekod Pembayaran</h2>
+                        <p id="recordCountText" class="text-teal-200 mt-1 font-medium">0 rekod dijumpai</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-teal-200 font-bold uppercase tracking-wider mb-1">Jumlah</p>
+                        <p id="totalAmountText" class="text-2xl font-black text-emerald-400">RM 0.00</p>
+                    </div>
+                </div>
+
+                <div id="recordsList" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                    <!-- Rekod dari JS -->
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL KALKULATOR ZAKAT PENDAPATAN          -->
+    <!-- ========================================== -->
+    <div id="kalkulatorModal" class="fixed inset-0 bg-teal-950/80 z-[60] hidden flex-col justify-end md:justify-center items-center backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white w-full max-w-md md:rounded-[2rem] rounded-t-[2rem] shadow-2xl overflow-hidden animate-fade-in-up">
+            
+            <!-- Header Modal -->
+            <div class="bg-teal-800 p-6 flex justify-between items-center text-white relative">
+                <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-extrabold flex items-center gap-2">
+                        Kalkulator Zakat
+                    </h2>
+                    <p class="text-teal-200 text-sm font-medium mt-1">Zakat Pendapatan (2.5%)</p>
+                </div>
+                <button onclick="closeKalkulator()" class="relative z-10 bg-teal-900/50 hover:bg-teal-900 rounded-full p-2 text-teal-100 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <!-- Input Pendapatan -->
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Pendapatan Kasar Setahun</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 font-bold">RM</span>
+                        <input type="number" id="calcPendapatan" oninput="kiraZakat()" class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-bold text-lg text-slate-800 transition-shadow" placeholder="0.00" min="0">
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1 font-medium">Gaji, bonus, elaun dan pendapatan lain.</p>
+                </div>
+
+                <!-- Input Perbelanjaan -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Perbelanjaan Asas Setahun</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 font-bold">RM</span>
+                        <input type="number" id="calcPerbelanjaan" oninput="kiraZakat()" class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none font-bold text-lg text-slate-800 transition-shadow" placeholder="0.00" min="0">
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1 font-medium">Tolak perbelanjaan diri, isteri, anak, KWSP dll.</p>
+                </div>
+
+                <!-- Result Card -->
+                <div class="bg-teal-50 rounded-2xl p-5 border border-teal-100">
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-teal-200/50">
+                        <span class="text-sm font-semibold text-slate-600">Pendapatan Bersih</span>
+                        <span id="calcBersih" class="font-bold text-slate-800">RM 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <span class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Zakat Wajib (2.5%)</span>
+                        </div>
+                        <span id="calcZakat" class="text-3xl font-black text-teal-700">RM 0.00</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <p class="text-[10px] text-slate-400 font-medium">Kalkulator ini adalah anggaran ringkas. Sila rujuk asnaf atau badan amil bertauliah untuk taksiran terperinci dan semakan Nisab semasa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto py-8 text-center px-4 mb-16 md:mb-0">
+        <p class="text-slate-400 text-xs font-medium tracking-wide">
+            Copyright &copy; by Bahrul Ulum 2026<br>
+            Sistem Carian Zakat
+        </p>
+    </footer>
+
+    <!-- BOTTOM NAVIGATION (Mobile App Style) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around items-center z-40 pb-safe md:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+        <button onclick="switchTab('home')" id="navHomeBtn" class="flex flex-col items-center gap-1 text-teal-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+            <span class="text-[10px] font-bold">Utama</span>
+        </button>
+        <button onclick="switchTab('search')" id="navSearchBtn" class="flex flex-col items-center gap-1 text-slate-400 hover:text-teal-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <span class="text-[10px] font-bold">Semakan</span>
+        </button>
     </div>
 
     <script>
@@ -176,7 +385,29 @@
         const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
         const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
 
-        // CSV Parser Logic (Sama macam React tadi)
+        // Global State (Cached Data)
+        let globalPayers = [];
+        let globalRecords = [];
+        let chartInstance = null;
+
+        // PWA Setup (Auto Manifest for "Add to Homescreen")
+        const setupPWA = () => {
+            const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23115e59'/><text x='50%' y='50%' font-family='sans-serif' font-size='250' font-weight='bold' fill='white' dominant-baseline='middle' text-anchor='middle'>Z</text></svg>`;
+            const manifest = {
+                name: "Zakat Bahrul Ulum",
+                short_name: "Zakat BU",
+                start_url: location.href,
+                display: "standalone",
+                background_color: "#f0fdfa",
+                theme_color: "#115e59",
+                icons: [{ src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconSvg), sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+            };
+            const manifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'}));
+            document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+        };
+        setupPWA();
+
+        // CSV Parser
         function parseCSV(str) {
             const arr = [];
             let quote = false;
@@ -193,233 +424,252 @@
                 if (cc === '\r' && !quote) { ++row; col = 0; continue; }
                 arr[row][col] += cc;
             }
-            
             if (arr.length === 0) return [];
-            
             const headers = arr[0].map(h => h.trim());
             const data = [];
-            
             for (let i = 1; i < arr.length; i++) {
                 if (arr[i].length === 1 && arr[i][0] === "") continue;
                 let obj = {};
-                for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : '';
-                }
+                for (let j = 0; j < headers.length; j++) { obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : ''; }
                 data.push(obj);
             }
             return data;
         }
 
-        // Format matawang MYR
         function formatCurrency(amount) {
             return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(amount);
         }
 
-        // DOM Elements
-        const form = document.getElementById('searchForm');
-        const input = document.getElementById('searchInput');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
-        const searchBtn = document.getElementById('searchBtn');
-        const errorContainer = document.getElementById('errorContainer');
-        const errorText = document.getElementById('errorText');
-        const resultContainer = document.getElementById('resultContainer');
-        
-        // DOM Elements untuk Kad Ringkasan
-        const statTotalTrans = document.getElementById('statTotalTrans');
-        const statStatus = document.getElementById('statStatus');
-        const statId = document.getElementById('statId');
-        const statTransKecil = document.getElementById('statTransKecil');
-        const statTahunAktif = document.getElementById('statTahunAktif');
-        const statTerkini = document.getElementById('statTerkini');
-        
-        // DOM Elements untuk Senarai Rekod
-        const recordCountText = document.getElementById('recordCountText');
-        const totalAmountText = document.getElementById('totalAmountText');
-        const recordsList = document.getElementById('recordsList');
+        // Initialize App (Fetch Data Once on Load)
+        async function initApp() {
+            try {
+                const [payerRes, recordsRes] = await Promise.all([ fetch(URL_PAYER_LIST), fetch(URL_PAYMENT_RECORDS) ]);
+                if (!payerRes.ok || !recordsRes.ok) throw new Error("Gagal muat turun pangkalan data.");
 
-        function setLoading(isLoading) {
-            if (isLoading) {
-                btnText.classList.add('hidden');
-                btnLoader.classList.remove('hidden');
-                searchBtn.disabled = true;
-                searchBtn.classList.add('opacity-70');
-            } else {
-                btnText.classList.remove('hidden');
-                btnLoader.classList.add('hidden');
-                searchBtn.disabled = false;
-                searchBtn.classList.remove('opacity-70');
+                globalPayers = parseCSV(await payerRes.text());
+                globalRecords = parseCSV(await recordsRes.text());
+
+                processDashboardStats();
+                
+                // Hide Loader smoothly
+                const loader = document.getElementById('globalLoader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.classList.add('hidden'), 300);
+
+            } catch (err) {
+                console.error(err);
+                alert("Sambungan terputus. Pastikan anda mempunyai akses internet.");
+                document.getElementById('globalLoader').innerHTML = `<p class="text-white text-center font-bold">Gagal memuatkan sistem.<br>Sila refresh laman ini.</p>`;
             }
         }
 
-        function showError(msg) {
-            errorText.textContent = msg;
-            errorContainer.classList.remove('hidden');
-            resultContainer.classList.add('hidden');
+        // Dashboard Logic
+        function processDashboardStats() {
+            const currentYear = new Date().getFullYear().toString(); // e.g. "2026"
+            let totalCurrentYear = 0;
+            const yearlyData = {};
+
+            globalRecords.forEach(r => {
+                const amount = parseFloat(r.JUMLAH) || 0;
+                const year = (r.TAHUN || '').trim();
+                if(!year) return;
+
+                if (year === currentYear) totalCurrentYear += amount;
+
+                if (!yearlyData[year]) yearlyData[year] = 0;
+                yearlyData[year] += amount;
+            });
+
+            // Update DOM
+            document.getElementById('statTotalPayers').textContent = globalPayers.length;
+            document.getElementById('statTotalAmount').textContent = formatCurrency(totalCurrentYear);
+
+            // Chart Logic (Get last 5 years)
+            const sortedYears = Object.keys(yearlyData).sort().slice(-5);
+            const amounts = sortedYears.map(y => yearlyData[y]);
+
+            if(chartInstance) chartInstance.destroy();
+            const ctx = document.getElementById('homeChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedYears,
+                    datasets: [{
+                        label: 'Kutipan (RM)',
+                        data: amounts,
+                        backgroundColor: '#0d9488', // teal-600
+                        borderRadius: 6,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { dash: [4, 4] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
         }
 
-        // --- PWA SETUP (Manifest & Service Worker dicipta secara On-The-Fly) ---
-        const setupPWA = () => {
-            // 1. Cipta Icon SVG untuk Manifest
-            const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231e428c'/><text x='50%' y='50%' font-family='sans-serif' font-size='250' font-weight='bold' fill='white' dominant-baseline='middle' text-anchor='middle'>Z</text></svg>`;
-            
-            // 2. Cipta Manifest JSON
-            const manifest = {
-                name: "Sistem Semakan Zakat",
-                short_name: "Zakat",
-                description: "Sistem carian rekod pembayaran penzakat",
-                start_url: location.href,
-                display: "standalone",
-                background_color: "#f1f5f9",
-                theme_color: "#1e428c",
-                icons: [{ 
-                    src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconSvg), 
-                    sizes: "512x512", 
-                    type: "image/svg+xml", 
-                    purpose: "any maskable" 
-                }]
-            };
-            
-            // 3. Pasang Manifest ke dalam <head> menggunakan Blob
-            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
-            const manifestUrl = URL.createObjectURL(manifestBlob);
-            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+        // Navigation Logic
+        function switchTab(tabId) {
+            const vHome = document.getElementById('viewHome');
+            const vSearch = document.getElementById('viewSearch');
+            const navHome = document.getElementById('navHomeBtn');
+            const navSearch = document.getElementById('navSearchBtn');
 
-            // Nota: Pendaftaran Service Worker melalui Blob URL telah dibuang untuk mengelakkan 
-            // sekatan keselamatan browser (Protocol not supported error).
-            // Apabila di-host nanti, cipta satu fail sw.js berasingan untuk offline cache yang sebenar.
-            console.info("PWA Manifest dimuatkan. Untuk sokongan Service Worker, fail 'sw.js' berasingan diperlukan.");
-        };
-        // Jalankan pemasangan PWA
-        setupPWA();
+            if (tabId === 'home') {
+                vHome.classList.remove('tab-hidden');
+                vSearch.classList.add('tab-hidden');
+                // Mobile Nav Active State
+                navHome.classList.replace('text-slate-400', 'text-teal-600');
+                navHome.querySelector('svg').setAttribute('fill', 'currentColor');
+                navSearch.classList.replace('text-teal-600', 'text-slate-400');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                vHome.classList.add('tab-hidden');
+                vSearch.classList.remove('tab-hidden');
+                // Mobile Nav Active State
+                navSearch.classList.replace('text-slate-400', 'text-teal-600');
+                navHome.classList.replace('text-teal-600', 'text-slate-400');
+                navHome.querySelector('svg').setAttribute('fill', 'none');
+                navHome.querySelector('svg').setAttribute('stroke', 'currentColor');
+                navHome.querySelector('svg').setAttribute('stroke-width', '2.5');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Auto focus input
+                setTimeout(() => document.getElementById('searchInput').focus(), 100);
+            }
+        }
 
-        // Search Logic
-        form.addEventListener('submit', async function(e) {
+        // Kalkulator Zakat Logic
+        function openKalkulator() {
+            const modal = document.getElementById('kalkulatorModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Sedikit delay untuk trigger animasi
+            setTimeout(() => {
+                document.getElementById('calcPendapatan').focus();
+            }, 100);
+        }
+
+        function closeKalkulator() {
+            const modal = document.getElementById('kalkulatorModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            // Reset input (optional)
+            document.getElementById('calcPendapatan').value = '';
+            document.getElementById('calcPerbelanjaan').value = '';
+            document.getElementById('calcBersih').textContent = 'RM 0.00';
+            document.getElementById('calcZakat').textContent = 'RM 0.00';
+        }
+
+        function kiraZakat() {
+            const pendapatan = parseFloat(document.getElementById('calcPendapatan').value) || 0;
+            const perbelanjaan = parseFloat(document.getElementById('calcPerbelanjaan').value) || 0;
+            
+            const bersih = pendapatan - perbelanjaan;
+            let zakat = 0;
+
+            if (bersih > 0) {
+                zakat = bersih * 0.025; // 2.5%
+            }
+
+            document.getElementById('calcBersih').textContent = formatCurrency(bersih > 0 ? bersih : 0);
+            document.getElementById('calcZakat').textContent = formatCurrency(zakat);
+        }
+
+        // Fast Local Search Logic
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const queryId = input.value.trim().toUpperCase();
-            
+            const queryId = document.getElementById('searchInput').value.trim().toUpperCase();
             if (!queryId) return;
 
-            // Semak jika pengguna Tiada Talian Internet (Offline)
-            if (!navigator.onLine) {
-                showError('Peranti anda di luar talian (Offline). Sila sambung ke internet untuk membuat carian.');
+            const errCon = document.getElementById('errorContainer');
+            const errTxt = document.getElementById('errorText');
+            const resCon = document.getElementById('resultContainer');
+            
+            errCon.classList.add('hidden');
+            resCon.classList.add('hidden');
+
+            const foundPayer = globalPayers.find(p => p.ID && p.ID.toUpperCase() === queryId);
+            if (!foundPayer) {
+                errTxt.textContent = `ID '${queryId}' tidak dijumpai dalam rekod.`;
+                errCon.classList.remove('hidden');
                 return;
             }
 
-            setLoading(true);
-            errorContainer.classList.add('hidden');
-            resultContainer.classList.add('hidden');
+            let userRecords = globalRecords.filter(r => r.ID && r.ID.toUpperCase() === queryId);
+            userRecords.sort((a, b) => parseInt(b.TAHUN || 0) - parseInt(a.TAHUN || 0));
 
-            try {
-                // Fetch kedua-dua fail serentak (Parallel fetching)
-                const [payerRes, recordsRes] = await Promise.all([
-                    fetch(URL_PAYER_LIST),
-                    fetch(URL_PAYMENT_RECORDS)
-                ]);
+            let totalRM = 0;
+            const yearsSet = new Set();
+            userRecords.forEach(r => {
+                totalRM += parseFloat(r.JUMLAH) || 0;
+                if (r.TAHUN) yearsSet.add(r.TAHUN);
+            });
 
-                if (!payerRes.ok || !recordsRes.ok) throw new Error("Gagal menyambung ke Google Sheets.");
+            // Update UI Ringkasan
+            document.getElementById('statId').textContent = `ID: ${foundPayer.ID}`;
+            
+            const badge = document.getElementById('statStatus');
+            badge.textContent = `Status: ${foundPayer.STATUS || '-'}`;
+            if((foundPayer.STATUS || '').toLowerCase() === 'active') {
+                badge.className = "absolute -bottom-2 bg-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
+            } else {
+                badge.className = "absolute -bottom-2 bg-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
+            }
 
-                const payerCSV = await payerRes.text();
-                const recordsCSV = await recordsRes.text();
+            const transCount = userRecords.length;
+            document.getElementById('statTotalTrans').textContent = transCount < 10 ? `0${transCount}` : transCount;
+            document.getElementById('statTransKecil').textContent = transCount;
+            document.getElementById('statTahunAktif').textContent = yearsSet.size;
+            document.getElementById('statTerkini').textContent = transCount > 0 ? userRecords[0].TAHUN : '-';
 
-                const payers = parseCSV(payerCSV);
-                const records = parseCSV(recordsCSV);
+            // Update UI Rekod List
+            document.getElementById('recordCountText').textContent = `${transCount} rekod dijumpai`;
+            document.getElementById('totalAmountText').textContent = formatCurrency(totalRM);
 
-                // Cari user
-                const foundPayer = payers.find(p => p.ID && p.ID.toUpperCase() === queryId);
-                
-                if (!foundPayer) {
-                    showError(`ID '${queryId}' tidak dijumpai dalam rekod penzakat.`);
-                    setLoading(false);
-                    return;
-                }
-
-                // Cari rekod & urus (Sort by Year Descending)
-                let userRecords = records.filter(r => r.ID && r.ID.toUpperCase() === queryId);
-                userRecords = userRecords.sort((a, b) => parseInt(b.TAHUN || 0) - parseInt(a.TAHUN || 0));
-
-                // Kira statistik
-                let totalRM = 0;
-                const yearsSet = new Set();
-                
-                userRecords.forEach(record => {
-                    totalRM += parseFloat(record.JUMLAH) || 0;
-                    if (record.TAHUN) yearsSet.add(record.TAHUN);
-                });
-
-                // Update UI: Ringkasan
-                statId.textContent = `ID: ${foundPayer.ID}`;
-                statStatus.textContent = `Status: ${foundPayer.STATUS || 'Tiada'}`;
-                
-                // Set warna status
-                if((foundPayer.STATUS || '').toLowerCase() === 'active') {
-                    statStatus.className = "absolute -bottom-2 bg-green-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
-                } else {
-                    statStatus.className = "absolute -bottom-2 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md";
-                }
-
-                const transCount = userRecords.length;
-                statTotalTrans.textContent = transCount < 10 ? `0${transCount}` : transCount;
-                statTransKecil.textContent = transCount;
-                statTahunAktif.textContent = yearsSet.size;
-                statTerkini.textContent = transCount > 0 ? userRecords[0].TAHUN : '-';
-
-                // Update UI: Rekod
-                recordCountText.textContent = `${transCount} rekod dijumpai untuk ID ini`;
-                totalAmountText.textContent = formatCurrency(totalRM);
-
-                // Render List Html
-                recordsList.innerHTML = ''; // Clear lama
-                
-                if (transCount === 0) {
-                    recordsList.innerHTML = `
-                        <div class="text-center py-12 bg-[#092765] rounded-2xl border border-[#1e428c] border-dashed">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            <p class="text-blue-200 text-lg">Tiada rekod pembayaran dijumpai.</p>
-                        </div>
-                    `;
-                } else {
-                    userRecords.forEach(record => {
-                        const amountFormatted = formatCurrency(parseFloat(record.JUMLAH) || 0);
-                        const tarikh = record.TARIKH_BAYAR || 'Tarikh tidak direkodkan';
-                        
-                        const itemHtml = `
-                            <div class="bg-[#092765] hover:bg-[#0c317c] transition-colors duration-200 rounded-[1.5rem] p-5 flex flex-col md:flex-row items-start md:items-center justify-between border border-[#1e428c] gap-4">
-                                <div class="flex items-center gap-5">
-                                    <div class="bg-[#1e428c] w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-inner flex-shrink-0">
-                                        <span class="text-xs text-blue-200 font-bold uppercase tracking-wider mb-0.5">Tahun</span>
-                                        <span class="text-xl font-bold text-white leading-none">${record.TAHUN}</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-2xl font-bold text-white mb-1">${amountFormatted}</h4>
-                                        <div class="flex items-center text-blue-200 text-sm gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                            ${tarikh}
-                                        </div>
-                                    </div>
+            const rList = document.getElementById('recordsList');
+            rList.innerHTML = ''; 
+            
+            if (transCount === 0) {
+                rList.innerHTML = `<div class="text-center py-8 bg-[#003d33] rounded-2xl border border-teal-700/50 border-dashed text-teal-300">Tiada rekod pembayaran dijumpai.</div>`;
+            } else {
+                userRecords.forEach(r => {
+                    rList.insertAdjacentHTML('beforeend', `
+                        <div class="bg-[#003d33] hover:bg-[#00332a] transition-colors duration-200 rounded-[1.2rem] p-4 flex items-center justify-between border border-teal-700/50">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-teal-900 w-14 h-14 rounded-xl flex flex-col items-center justify-center border border-teal-700">
+                                    <span class="text-[10px] text-teal-300 font-bold uppercase tracking-wider mb-0.5">Tahun</span>
+                                    <span class="text-lg font-black text-white leading-none">${r.TAHUN}</span>
                                 </div>
-                                <div class="w-full md:w-auto flex justify-end">
-                                    <div class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        Selesai
+                                <div>
+                                    <h4 class="text-xl font-bold text-white mb-0.5">${formatCurrency(parseFloat(r.JUMLAH) || 0)}</h4>
+                                    <div class="text-teal-400 text-xs font-medium flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        ${r.TARIKH_BAYAR || '-'}
                                     </div>
                                 </div>
                             </div>
-                        `;
-                        recordsList.insertAdjacentHTML('beforeend', itemHtml);
-                    });
-                }
-
-                // Tunjuk Dashboard
-                resultContainer.classList.remove('hidden');
-
-            } catch (err) {
-                console.error("Fetch error:", err);
-                showError('Berlaku ralat sistem. Sila cuba sebentar lagi.');
-            } finally {
-                setLoading(false);
+                            <div class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Selesai
+                            </div>
+                        </div>
+                    `);
+                });
             }
+
+            resCon.classList.remove('hidden');
         });
+
+        // Start Fetching Data
+        window.onload = initApp;
+
     </script>
 </body>
 </html>
