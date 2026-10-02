@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -80,7 +80,7 @@
                 <!-- Header (Logo) -->
                 <div class="flex justify-between items-center mb-8">
                     <img src="https://i.postimg.cc/sxHMhZ84/image.png" alt="Logo" class="h-12 bg-white/10 p-1.5 rounded-xl backdrop-blur-sm shadow-sm">
-                    <div class="w-10 h-10 bg-teal-700/50 rounded-full flex items-center justify-center backdrop-blur text-white border border-teal-600/50 cursor-pointer shadow-sm">
+                    <div class="w-10 h-10 bg-teal-700/50 rounded-full flex items-center justify-center backdrop-blur text-white border border-teal-600/50 shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
                 </div>
                 <div class="flex-1 overflow-hidden relative h-9 flex items-center bg-teal-50/50">
                     <div class="animate-ticker text-teal-800 text-sm font-medium inline-block w-full">
-                        🌟 Tunaikan zakat anda untuk menyucikan harta dan jiwa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 📢 Peringatan: Bayar zakat sebelum 31 Disember untuk kelayakan rebat cukai pendapatan tahun semasa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 🕌 Kempen Zakat Bahrul Ulum 2026 kini berlangsung. Ayuh menyumbang!
+                        🌟 Tunaikan zakat anda untuk menyucikan harta dan jiwa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 📢 Peringatan: Bayar zakat sebelum 31 Disember untuk kelayakan rebat cukai pendapatan tahun semasa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 🕌 Kempen Zakat Bahrul Ulum kini berlangsung. Ayuh menyumbang!
                     </div>
                 </div>
             </div>
@@ -148,24 +148,80 @@
             </button>
         </div>
 
-        <!-- Dashboard Statistics -->
+        <!-- Perjalanan Zakat (Progress Target) & Impak -->
         <div class="px-6 mt-8 mb-6">
-            <h2 class="text-lg font-bold text-teal-950 mb-4 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
-                Ringkasan Zakat
-            </h2>
             
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <!-- Stat 1 -->
-                <div class="bg-white rounded-2xl p-4 border border-teal-100/50 shadow-sm flex flex-col justify-center">
-                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Penzakat</p>
-                    <h3 id="statTotalPayers" class="text-2xl font-black text-teal-800">0</h3>
+            <!-- PROGRESS SASARAN -->
+            <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-teal-100/50 mb-6 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-teal-50 rounded-full blur-2xl z-0 pointer-events-none"></div>
+                <h3 class="font-bold text-teal-950 mb-5 flex items-center gap-2 relative z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    Perjalanan Zakat Tahun Ini
+                </h3>
+                
+                <div class="flex justify-between items-end mb-3 relative z-10">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Telah Diterima</p>
+                        <p class="text-2xl font-black text-teal-700" id="statDiterima">RM 0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Sasaran <span id="labelTahunSasaran">2026</span></p>
+                        <p class="text-xl font-bold text-slate-700" id="statSasaran">RM 100,000</p>
+                    </div>
                 </div>
-                <!-- Stat 2 -->
-                <div class="bg-teal-600 rounded-2xl p-4 shadow-md flex flex-col justify-center relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-teal-500/50 rounded-full blur-xl"></div>
-                    <p class="text-teal-100 text-xs font-bold uppercase tracking-wider mb-1">Kutipan Semasa</p>
-                    <h3 id="statTotalAmount" class="text-2xl font-black text-white">RM 0</h3>
+                
+                <!-- Progress Bar Linear -->
+                <div class="w-full bg-slate-100 rounded-full h-3.5 mb-2 overflow-hidden relative z-10 shadow-inner">
+                    <div id="progressBar" class="bg-gradient-to-r from-teal-500 to-emerald-400 h-3.5 rounded-full transition-all duration-1000 ease-out shadow-sm" style="width: 0%"></div>
+                </div>
+                
+                <div class="flex justify-between items-center text-xs font-bold relative z-10">
+                    <span id="progressText" class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">0% daripada sasaran</span>
+                    <span class="text-slate-500">Baki: <span id="statBaki" class="text-slate-700">RM 0</span></span>
+                </div>
+            </div>
+
+            <!-- IMPAK ZAKAT UNTUK SEKOLAH -->
+            <div class="mb-8">
+                <h3 class="font-bold text-teal-950 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    Impak Zakat Untuk Sekolah
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Card 1: Murid -->
+                    <div class="bg-blue-50/70 p-4 rounded-[1.2rem] border border-blue-100 flex flex-col items-center text-center shadow-sm hover:shadow transition-shadow">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <span class="text-xl font-black text-blue-900 leading-none mb-1">+-650</span>
+                        <span class="text-xs font-bold text-blue-700/80 leading-tight">Murid Menerima Manfaat</span>
+                    </div>
+                    
+                    <!-- Card 2: Kakitangan -->
+                    <div class="bg-indigo-50/70 p-4 rounded-[1.2rem] border border-indigo-100 flex flex-col items-center text-center shadow-sm hover:shadow transition-shadow">
+                        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        </div>
+                        <span class="text-xl font-black text-indigo-900 leading-none mb-1">93</span>
+                        <span class="text-xs font-bold text-indigo-700/80 leading-tight">Pembayaran Gaji Kakitangan</span>
+                    </div>
+                    
+                    <!-- Card 3: Program -->
+                    <div class="bg-amber-50/70 p-4 rounded-[1.2rem] border border-amber-100 flex flex-col items-center text-center justify-center min-h-[110px] shadow-sm hover:shadow transition-shadow">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-800/80 uppercase leading-tight mt-1 tracking-wide">Program Pendidikan & Kebajikan</span>
+                    </div>
+                    
+                    <!-- Card 4: Fasiliti -->
+                    <div class="bg-emerald-50/70 p-4 rounded-[1.2rem] border border-emerald-100 flex flex-col items-center text-center justify-center min-h-[110px] shadow-sm hover:shadow transition-shadow">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                        </div>
+                        <span class="text-[11px] font-bold text-emerald-800/80 uppercase leading-tight mt-1 tracking-wide">Penyelenggaraan Fasiliti</span>
+                    </div>
                 </div>
             </div>
 
@@ -173,6 +229,7 @@
             <div class="bg-white rounded-[1.5rem] p-5 shadow-sm border border-teal-100/50">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-slate-800">Prestasi Kutipan 5 Tahun</h3>
+                    <span class="text-xs bg-slate-100 text-slate-500 font-bold px-2 py-1 rounded">Total Penzakat: <span id="statTotalPayers" class="text-teal-700">-</span></span>
                 </div>
                 <div class="relative h-48 w-full">
                     <canvas id="homeChart"></canvas>
@@ -390,6 +447,9 @@
         let globalRecords = [];
         let chartInstance = null;
 
+        // Sasaran Kutipan Tahunan
+        const TARGET_KUTIPAN = 100000;
+
         // PWA Setup (Auto Manifest for "Add to Homescreen")
         const setupPWA = () => {
             const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23115e59'/><text x='50%' y='50%' font-family='sans-serif' font-size='250' font-weight='bold' fill='white' dominant-baseline='middle' text-anchor='middle'>Z</text></svg>`;
@@ -443,6 +503,8 @@
         // Initialize App (Fetch Data Once on Load)
         async function initApp() {
             try {
+                if (!navigator.onLine) throw new Error("Tiada sambungan internet.");
+
                 const [payerRes, recordsRes] = await Promise.all([ fetch(URL_PAYER_LIST), fetch(URL_PAYMENT_RECORDS) ]);
                 if (!payerRes.ok || !recordsRes.ok) throw new Error("Gagal muat turun pangkalan data.");
 
@@ -458,8 +520,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("Sambungan terputus. Pastikan anda mempunyai akses internet.");
-                document.getElementById('globalLoader').innerHTML = `<p class="text-white text-center font-bold">Gagal memuatkan sistem.<br>Sila refresh laman ini.</p>`;
+                document.getElementById('globalLoader').innerHTML = `<p class="text-white text-center font-bold px-6">Gagal memuatkan sistem.<br>Sila pastikan internet anda stabil dan refresh laman ini.</p>`;
             }
         }
 
@@ -480,16 +541,35 @@
                 yearlyData[year] += amount;
             });
 
-            // Update DOM
+            // Update DOM Total Payers
             document.getElementById('statTotalPayers').textContent = globalPayers.length;
-            document.getElementById('statTotalAmount').textContent = formatCurrency(totalCurrentYear);
+            
+            // --- Logik Progress Sasaran Zakat ---
+            document.getElementById('labelTahunSasaran').textContent = currentYear;
+            document.getElementById('statSasaran').textContent = formatCurrency(TARGET_KUTIPAN);
+            document.getElementById('statDiterima').textContent = formatCurrency(totalCurrentYear);
+            
+            let baki = TARGET_KUTIPAN - totalCurrentYear;
+            if (baki < 0) baki = 0;
+            document.getElementById('statBaki').textContent = formatCurrency(baki);
+            
+            let percent = (totalCurrentYear / TARGET_KUTIPAN) * 100;
+            let displayPercent = percent > 100 ? 100 : percent;
+            
+            // Animate progress bar slightly delayed
+            setTimeout(() => {
+                document.getElementById('progressBar').style.width = displayPercent + '%';
+                document.getElementById('progressText').textContent = percent.toFixed(1) + '% daripada sasaran';
+            }, 500);
 
-            // Chart Logic (Get last 5 years)
+            // --- Chart Logic (Get last 5 years) ---
             const sortedYears = Object.keys(yearlyData).sort().slice(-5);
             const amounts = sortedYears.map(y => yearlyData[y]);
 
             if(chartInstance) chartInstance.destroy();
             const ctx = document.getElementById('homeChart').getContext('2d');
+            
+            // Chart tanpa Paksi-Y (Y-Axis dihilangkan)
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -507,8 +587,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { dash: [4, 4] } },
-                        x: { grid: { display: false } }
+                        y: { display: false }, // HILANGKAN PAKSI Y DI SINI
+                        x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
                     }
                 }
             });
@@ -549,10 +629,7 @@
             const modal = document.getElementById('kalkulatorModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            // Sedikit delay untuk trigger animasi
-            setTimeout(() => {
-                document.getElementById('calcPendapatan').focus();
-            }, 100);
+            setTimeout(() => { document.getElementById('calcPendapatan').focus(); }, 100);
         }
 
         function closeKalkulator() {
@@ -560,7 +637,6 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             
-            // Reset input (optional)
             document.getElementById('calcPendapatan').value = '';
             document.getElementById('calcPerbelanjaan').value = '';
             document.getElementById('calcBersih').textContent = 'RM 0.00';
@@ -574,9 +650,7 @@
             const bersih = pendapatan - perbelanjaan;
             let zakat = 0;
 
-            if (bersih > 0) {
-                zakat = bersih * 0.025; // 2.5%
-            }
+            if (bersih > 0) { zakat = bersih * 0.025; } // Zakat = 2.5%
 
             document.getElementById('calcBersih').textContent = formatCurrency(bersih > 0 ? bersih : 0);
             document.getElementById('calcZakat').textContent = formatCurrency(zakat);
