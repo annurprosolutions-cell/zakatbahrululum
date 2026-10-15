@@ -11,11 +11,8 @@ dashboard admin (`admin/index.html`).
    - Execute as: **Me**
    - Who has access: **Anyone**
 4. Copy URL yang berakhir dengan `/exec`.
-5. Tampal URL tersebut pada `URL_APPSCRIPT_WEBAPP` di **kedua-dua** fail:
-   - `index.html` (bahagian `<script>`, berhampiran `BASE_URL`)
-   - `admin/index.html`
-6. Buka portal sekali — tab `RESIT_MANUAL` akan dicipta sendiri pada Google
-   Sheet apabila hantaran pertama diterima.
+5. Tampal URL tersebut pada `URL_APPSCRIPT_WEBAPP` di `admin/index.html`.
+   (Portal awam tidak perlu URL ini — ia baca CSV sahaja.)
 
 > Setiap kali `Code.gs` diubah, deploy versi baharu
 > (**Deploy > Manage deployments > Edit > New version**) barulah perubahan
@@ -23,37 +20,68 @@ dashboard admin (`admin/index.html`).
 
 ## Struktur tab Google Sheet
 
-| Tab | GID | Kandungan |
+| Tab | GID | Lajur |
 |---|---|---|
-| PAYER_LIST | `1211671427` | `ID` \| `STATUS` |
-| PAYMENT_RECORDS | `1163321599` | `ID` \| `TAHUN` \| `JUMLAH` \| `TARIKH_BAYAR` |
-| RESIT_MANUAL | auto | Hantaran resit Muzakki, menunggu semakan admin |
+| PAYER_LIST | `1211671427` | A `ID` \| B `STATUS` |
+| PAYMENT_RECORDS | `1163321599` | A `ID` \| B `TAHUN` \| C `JUMLAH` \| D `TARIKH_BAYAR` \| **E `RESIT`** |
+
+**Langkah sekali sahaja:** taip `RESIT` pada sel **E1** tab PAYMENT_RECORDS.
+Tanpa header ini, portal awam tidak dapat membaca pautan resit.
 
 ## Senarai `action` yang disokong
 
-| Action | Pemanggil | Fungsi |
+| Action | Fungsi |
+|---|---|
+| `updateStatus` | Kemaskini status Muzakki (Active/Inactive) |
+| `addRecord` | Tambah rekod pembayaran; resit melalui pautan atau muat naik fail (pilihan) |
+| `updateResit` | Tukar, muat naik, atau buang resit pada rekod sedia ada |
+
+## Resit (PDF & imej)
+
+Folder Drive resit: `11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B`
+(dikonfigurasi pada `FOLDER_RESIT_ID` dalam `Code.gs`).
+
+Admin ada dua cara memasukkan resit:
+
+1. **Muat naik fail** (disyorkan) — pilih PDF/JPG/PNG (maks 8MB) dalam borang.
+   Apps Script simpan ke folder di atas, set perkongsian **Anyone with the link
+   → Viewer**, dan tulis pautan ke lajur E secara automatik.
+2. **Tampal pautan Drive** — jenis fail dikesan sendiri.
+
+Format yang disimpan pada lajur `RESIT`:
+
+| Jenis fail | Disimpan sebagai | Dipapar dengan |
 |---|---|---|
-| `updateStatus` | Admin | Kemaskini status Muzakki (Active/Inactive) |
-| `addRecord` | Admin | Tambah rekod rasmi pembayaran |
-| `submitResit` | Awam (Muzakki) | Hantar rekod resit untuk semakan (status `MENUNGGU`) |
-| `listResit` | Admin | Senarai hantaran resit mengikut status |
-| `reviewResit` | Admin | Terima / tolak hantaran. `DITERIMA` masuk rekod rasmi |
+| JPG / PNG / WEBP | `https://lh3.googleusercontent.com/d/FILEID` | `<img>` |
+| PDF | `https://drive.google.com/file/d/FILEID/preview` | `<iframe>` pratonton Drive |
 
-## Aliran kerja resit manual
+Pautan Drive mentah yang ditaip terus dalam sheet (cth `.../view?usp=sharing`)
+turut dikenali dan dipapar sebagai pratonton PDF.
+
+Dalam popup, Muzakki boleh lihat resit terus atas skrin dan tekan **Muat Turun**
+(PDF dimuat turun melalui pautan `uc?export=download`, tanpa tab baharu).
+
+**Syarat:** fail mesti dikongsi sebagai *Anyone with the link*. Fail yang
+dimuat naik melalui sistem dikongsi automatik; fail yang diletak manual dalam
+folder perlu diset sendiri (atau kongsi seluruh folder).
+
+**Kebenaran Drive:** selepas tampal kod baharu, pilih fungsi `ujiAkses`
+dalam editor Apps Script, tekan **Run**, dan luluskan kebenaran Drive sekali.
+Kemudian deploy versi baharu.
+
+## Aliran kerja
 
 ```
-Muzakki buat semakan → klik "Hantar Rekod Resit"
+Admin > Pengurusan Muzakki > cari ID
         ↓
-RESIT_MANUAL (status: MENUNGGU)
+Tambah Rekod Baru (tahun, jumlah, tarikh, pautan atau fail resit)
+   atau  klik "Tukar" / "+ Tambah Resit" pada rekod sedia ada
         ↓
-Admin > tab "Resit Manual" > Terima / Tolak
+PAYMENT_RECORDS lajur E dikemaskini
         ↓
-DITERIMA → rekod masuk PAYMENT_RECORDS (rekod rasmi)
-DITOLAK  → kekal dalam RESIT_MANUAL sebagai jejak audit
+Muzakki buat semakan > klik butang "Resit" pada rekod
+        ↓
+Resit terpapar dalam popup atas skrin + butang Muat Turun
 ```
-
-Hantaran awam **tidak** masuk terus ke rekod rasmi. Semua hantaran disahkan
-ID Muzakki wujud, tahun 4 angka, jumlah > RM 0, tarikh format `YYYY-MM-DD`,
-dan hantaran berulang (ID + tahun + no. resit yang sama) ditolak.
 
 Hotline rujukan percanggahan rekod: **011-55335082**

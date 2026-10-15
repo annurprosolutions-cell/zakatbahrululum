@@ -2,8 +2,8 @@
  * =====================================================================
  * e-MUZAKKI BAHRUL ULUM — BACKEND APPS SCRIPT
  * =====================================================================
- * Fail ini adalah backend tunggal untuk:
- *   1. Dashboard Admin  (admin/index.html)
+ * Backend tunggal untuk:
+ *   1. Dashboard Admin        (admin/index.html)
  *   2. Portal Semakan Muzakki (index.html)
  *
  * CARA PASANG:
@@ -12,36 +12,37 @@
  *   3. Deploy > New deployment > Web app
  *        - Execute as      : Me
  *        - Who has access  : Anyone
- *   4. Copy URL /exec, tampal pada URL_APPSCRIPT_WEBAPP di dalam
- *      index.html DAN admin/index.html
+ *   4. Copy URL /exec, tampal pada URL_APPSCRIPT_WEBAPP di admin/index.html
  *
  * NOTA PENTING:
  *   Setiap kali kod ini diubah, anda WAJIB deploy versi baharu
  *   (Deploy > Manage deployments > Edit > New version) barulah
  *   perubahan berkesan pada URL yang sama.
+ *
+ * STRUKTUR TAB PAYMENT_RECORDS (WAJIB):
+ *   A = ID | B = TAHUN | C = JUMLAH | D = TARIKH_BAYAR | E = RESIT
+ *   Lajur E menyimpan pautan resit:
+ *     - Imej (JPG/PNG) : https://lh3.googleusercontent.com/d/FILEID
+ *     - PDF            : https://drive.google.com/file/d/FILEID/preview
+ *
+ * KEBENARAN DRIVE:
+ *   Skrip ini guna DriveApp (simpan fail ke folder resit). Selepas tampal
+ *   kod baharu, jalankan fungsi ujiAkses() sekali dan beri kebenaran.
  * =====================================================================
  */
 
 // ===== KONFIGURASI =====
-var GID_PAYER_LIST      = 1211671427;  // Tab senarai Muzakki  (ID | STATUS | ...)
-var GID_PAYMENT_RECORDS = 1163321599;  // Tab rekod rasmi       (ID | TAHUN | JUMLAH | TARIKH_BAYAR)
-var NAMA_TAB_RESIT      = 'RESIT_MANUAL'; // Tab resit hantaran Muzakki (auto dicipta)
+var GID_PAYER_LIST      = 1211671427;  // Tab senarai Muzakki (ID | STATUS)
+var GID_PAYMENT_RECORDS = 1163321599;  // Tab rekod pembayaran
 var HOTLINE             = '011-55335082';
 
-// Header tab RESIT_MANUAL — jangan ubah susunan tanpa ubah kod di bawah
-var HEADER_RESIT = [
-  'TIMESTAMP',    // A - masa hantaran
-  'ID',           // B - ID Muzakki
-  'TAHUN',        // C
-  'JUMLAH',       // D
-  'TARIKH_BAYAR', // E
-  'NO_RESIT',     // F
-  'NAMA_PEMBAYAR',// G
-  'CATATAN',      // H
-  'STATUS',       // I - MENUNGGU / DITERIMA / DITOLAK
-  'DISEMAK_OLEH', // J
-  'TARIKH_SEMAK'  // K
-];
+// Folder Google Drive tempat fail resit disimpan
+var FOLDER_RESIT_ID     = '11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B';
+var SAIZ_MAKS_BYTE      = 8 * 1024 * 1024; // 8MB
+var MIME_DIBENARKAN     = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+
+// Bilangan lajur pada PAYMENT_RECORDS (termasuk RESIT)
+var LAJUR_RESIT = 5; // Lajur E
 
 
 /**
@@ -60,7 +61,7 @@ function doGet(e) {
 
 
 /**
- * POST — pintu masuk tunggal untuk semua arahan.
+ * POST — pintu masuk tunggal untuk semua arahan admin.
  */
 function doPost(e) {
   try {
@@ -73,18 +74,9 @@ function doPost(e) {
     var ss      = SpreadsheetApp.getActiveSpreadsheet();
 
     switch (action) {
-
-      // ---- ADMIN ----
       case 'updateStatus':  return updateStatus(ss, payload);
       case 'addRecord':     return addRecord(ss, payload);
-
-      // ---- MUZAKKI (awam) ----
-      case 'submitResit':   return submitResit(ss, payload);
-
-      // ---- ADMIN: pengurusan resit manual ----
-      case 'listResit':     return listResit(ss, payload);
-      case 'reviewResit':   return reviewResit(ss, payload);
-
+      case 'updateResit':   return updateResit(ss, payload);
       default:
         throw new Error('Tindakan tidak sah (action: "' + action + '").');
     }
@@ -96,13 +88,13 @@ function doPost(e) {
 
 
 /* =====================================================================
- * ARAHAN 1: KEMASKINI STATUS MUZAKKI  (Admin)
+ * ARAHAN 1: KEMASKINI STATUS MUZAKKI
  * ===================================================================== */
 function updateStatus(ss, payload) {
   var sheet = getSheetById(ss, GID_PAYER_LIST);
   if (!sheet) throw new Error('Tab PAYER_LIST tidak dijumpai!');
 
-  var idTarget  = normalizeId(payload.id);
+  var idTarget   = normalizeId(payload.id);
   var statusBaru = String(payload.status || '').trim();
 
   if (!idTarget)   throw new Error('ID Muzakki wajib diisi.');
@@ -126,7 +118,11 @@ function updateStatus(ss, payload) {
 
 
 /* =====================================================================
- * ARAHAN 2: TAMBAH REKOD RASMI  (Admin)
+ * ARAHAN 2: TAMBAH REKOD PEMBAYARAN (berserta pautan resit)
+ * ---------------------------------------------------------------------
+ * payload: { id, year, amount, date, receipt }
+ * `receipt` adalah pilihan — boleh pautan Google Drive biasa, ia akan
+ * ditukar secara automatik kepada format lh3.googleusercontent.com.
  * ===================================================================== */
 function addRecord(ss, payload) {
   var sheet = getSheetById(ss, GID_PAYMENT_RECORDS);
@@ -134,13 +130,22 @@ function addRecord(ss, payload) {
 
   var rekod = sahkanRekod(ss, payload);
 
+  // Fail yang dimuat naik diutamakan; jika tiada, guna pautan yang ditampal
+  var resit = simpanFailResit(payload, rekod.id, rekod.tahun) ||
+              normalizePautanResit(payload.receipt);
+
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    // Header: ID | TAHUN | JUMLAH | TARIKH_BAYAR
-    sheet.appendRow([rekod.id, rekod.tahun, rekod.jumlah, rekod.tarikh]);
+    pastikanHeaderResit(sheet);
+
+    // ID | TAHUN | JUMLAH | TARIKH_BAYAR | RESIT
+    sheet.appendRow([rekod.id, rekod.tahun, rekod.jumlah, rekod.tarikh, resit]);
+
     return respon('success',
-      'Rekod ' + rekod.id + ' (Tahun ' + rekod.tahun + ') berjaya ditambah.');
+      'Rekod ' + rekod.id + ' (Tahun ' + rekod.tahun + ') berjaya ditambah' +
+      (resit ? ' berserta resit.' : ' tanpa resit.'),
+      { link: resit });
   } finally {
     lock.releaseLock();
   }
@@ -148,162 +153,46 @@ function addRecord(ss, payload) {
 
 
 /* =====================================================================
- * ARAHAN 3: MUZAKKI HANTAR REKOD RESIT SECARA MANUAL  (Awam)
+ * ARAHAN 3: KEMASKINI / BUANG PAUTAN RESIT PADA REKOD SEDIA ADA
  * ---------------------------------------------------------------------
- * Hantaran awam TIDAK masuk terus ke rekod rasmi. Ia disimpan di tab
- * RESIT_MANUAL dengan status MENUNGGU untuk disemak oleh admin.
+ * payload: { id, year, date, receipt, fileBase64?, fileName?, fileMime? }
+ * Padanan rekod guna ID + TAHUN + TARIKH_BAYAR.
+ * Fail yang dimuat naik diutamakan. Jika tiada fail dan `receipt`
+ * kosong, pautan dibuang.
  * ===================================================================== */
-function submitResit(ss, payload) {
-  var sheet = getOrCreateSheet(ss, NAMA_TAB_RESIT, HEADER_RESIT);
-  var rekod = sahkanRekod(ss, payload);
+function updateResit(ss, payload) {
+  var sheet = getSheetById(ss, GID_PAYMENT_RECORDS);
+  if (!sheet) throw new Error('Tab PAYMENT_RECORDS tidak dijumpai!');
 
-  var noResit = potong(payload.receipt, 50);
-  var nama    = potong(payload.name, 100);
-  var catatan = potong(payload.note, 500);
+  var id     = normalizeId(payload.id);
+  var tahun  = String(payload.year || '').trim();
+  var tarikh = String(payload.date || '').trim();
 
-  if (!noResit) throw new Error('No. resit / rujukan bayaran wajib diisi.');
+  if (!id)    throw new Error('ID Muzakki wajib diisi.');
+  if (!tahun) throw new Error('Tahun rekod wajib diisi.');
+
+  var resit = simpanFailResit(payload, id, tahun) ||
+              normalizePautanResit(payload.receipt);
 
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    // Halang hantaran berulang yang sama (ID + tahun + no resit)
+    pastikanHeaderResit(sheet);
+
     var data = sheet.getDataRange().getValues();
     for (var i = 1; i < data.length; i++) {
-      var samaId    = normalizeId(data[i][1]) === rekod.id;
-      var samaTahun = String(data[i][2]).trim() === String(rekod.tahun);
-      var samaResit = String(data[i][5]).trim().toUpperCase() === noResit.toUpperCase();
-      var belumTolak = String(data[i][8]).trim().toUpperCase() !== 'DITOLAK';
-      if (samaId && samaTahun && samaResit && belumTolak) {
-        throw new Error('Resit ini sudah pernah dihantar dan sedang/telah disemak. ' +
-          'Sila hubungi Hotline ' + HOTLINE + ' jika perlu bantuan.');
+      var samaId     = normalizeId(data[i][0]) === id;
+      var samaTahun  = String(data[i][1]).trim() === tahun;
+      var samaTarikh = !tarikh || formatTarikhSahaja(data[i][3]) === tarikh;
+
+      if (samaId && samaTahun && samaTarikh) {
+        sheet.getRange(i + 1, LAJUR_RESIT).setValue(resit);
+        return respon('success', resit
+          ? 'Resit berjaya dikemaskini.'
+          : 'Resit berjaya dibuang.', { link: resit });
       }
     }
-
-    sheet.appendRow([
-      new Date(),   // TIMESTAMP
-      rekod.id,     // ID
-      rekod.tahun,  // TAHUN
-      rekod.jumlah, // JUMLAH
-      rekod.tarikh, // TARIKH_BAYAR
-      noResit,      // NO_RESIT
-      nama,         // NAMA_PEMBAYAR
-      catatan,      // CATATAN
-      'MENUNGGU',   // STATUS
-      '',           // DISEMAK_OLEH
-      ''            // TARIKH_SEMAK
-    ]);
-
-    return respon('success',
-      'Rekod resit anda berjaya dihantar untuk semakan pihak pengurusan. ' +
-      'Rekod rasmi akan dikemaskini setelah pengesahan dibuat.');
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-
-/* =====================================================================
- * ARAHAN 4: SENARAI RESIT MANUAL  (Admin)
- * ---------------------------------------------------------------------
- * payload.filter : 'MENUNGGU' (default) | 'DITERIMA' | 'DITOLAK' | 'SEMUA'
- * ===================================================================== */
-function listResit(ss, payload) {
-  var sheet = getOrCreateSheet(ss, NAMA_TAB_RESIT, HEADER_RESIT);
-  var filter = String(payload.filter || 'MENUNGGU').trim().toUpperCase();
-
-  var data = sheet.getDataRange().getValues();
-  var senarai = [];
-
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (!row[1]) continue; // baris kosong
-
-    var status = String(row[8] || 'MENUNGGU').trim().toUpperCase();
-    if (filter !== 'SEMUA' && status !== filter) continue;
-
-    senarai.push({
-      baris:      i + 1,
-      timestamp:  formatTarikh(row[0]),
-      id:         normalizeId(row[1]),
-      tahun:      String(row[2] || '').trim(),
-      jumlah:     Number(row[3]) || 0,
-      tarikh:     formatTarikhSahaja(row[4]),
-      resit:      String(row[5] || '').trim(),
-      nama:       String(row[6] || '').trim(),
-      catatan:    String(row[7] || '').trim(),
-      status:     status,
-      disemakOleh: String(row[9] || '').trim(),
-      tarikhSemak: formatTarikh(row[10])
-    });
-  }
-
-  senarai.reverse(); // terbaharu di atas
-
-  var result = {
-    status: 'success',
-    message: senarai.length + ' rekod dijumpai.',
-    data: senarai
-  };
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-
-/* =====================================================================
- * ARAHAN 5: SEMAK (TERIMA / TOLAK) RESIT MANUAL  (Admin)
- * ---------------------------------------------------------------------
- * payload.row      : nombor baris pada tab RESIT_MANUAL
- * payload.decision : 'DITERIMA' | 'DITOLAK'
- * payload.reviewer : nama / inisial admin (pilihan)
- *
- * Jika DITERIMA, rekod akan turut dimasukkan ke tab rekod rasmi.
- * ===================================================================== */
-function reviewResit(ss, payload) {
-  var sheet = getOrCreateSheet(ss, NAMA_TAB_RESIT, HEADER_RESIT);
-  var baris = parseInt(payload.row, 10);
-  var keputusan = String(payload.decision || '').trim().toUpperCase();
-  var reviewer  = potong(payload.reviewer, 100) || 'Admin';
-
-  if (!baris || baris < 2 || baris > sheet.getLastRow()) {
-    throw new Error('Baris rekod tidak sah. Sila muat semula senarai.');
-  }
-  if (keputusan !== 'DITERIMA' && keputusan !== 'DITOLAK') {
-    throw new Error('Keputusan mesti DITERIMA atau DITOLAK.');
-  }
-
-  var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try {
-    var row = sheet.getRange(baris, 1, 1, HEADER_RESIT.length).getValues()[0];
-    var statusSemasa = String(row[8] || '').trim().toUpperCase();
-
-    if (statusSemasa !== 'MENUNGGU') {
-      throw new Error('Rekod ini telah disemak sebelum ini (status: ' + statusSemasa + ').');
-    }
-
-    // Tulis keputusan
-    sheet.getRange(baris, 9).setValue(keputusan);   // STATUS
-    sheet.getRange(baris, 10).setValue(reviewer);   // DISEMAK_OLEH
-    sheet.getRange(baris, 11).setValue(new Date()); // TARIKH_SEMAK
-
-    if (keputusan === 'DITOLAK') {
-      return respon('success', 'Resit ditolak dan direkodkan.');
-    }
-
-    // DITERIMA — masukkan ke rekod rasmi
-    var sheetRasmi = getSheetById(ss, GID_PAYMENT_RECORDS);
-    if (!sheetRasmi) throw new Error('Tab PAYMENT_RECORDS tidak dijumpai!');
-
-    sheetRasmi.appendRow([
-      normalizeId(row[1]),
-      String(row[2]).trim(),
-      Number(row[3]) || 0,
-      formatTarikhSahaja(row[4])
-    ]);
-
-    return respon('success',
-      'Resit diterima. Rekod ' + normalizeId(row[1]) +
-      ' (Tahun ' + String(row[2]).trim() + ') telah dimasukkan ke rekod rasmi.');
+    throw new Error('Rekod ' + id + ' (Tahun ' + tahun + ') tidak dijumpai.');
   } finally {
     lock.releaseLock();
   }
@@ -314,7 +203,7 @@ function reviewResit(ss, payload) {
  * HELPER
  * ===================================================================== */
 
-/** Sahkan dan bersihkan input rekod pembayaran (guna oleh admin + awam). */
+/** Sahkan dan bersihkan input rekod pembayaran. */
 function sahkanRekod(ss, payload) {
   var id     = normalizeId(payload.id);
   var tahun  = String(payload.year || '').trim();
@@ -323,8 +212,7 @@ function sahkanRekod(ss, payload) {
 
   if (!id) throw new Error('ID Muzakki wajib diisi.');
   if (!idMuzakkiWujud(ss, id)) {
-    throw new Error('ID Muzakki "' + id + '" tidak dijumpai dalam rekod. ' +
-      'Sila rujuk Hotline ' + HOTLINE + '.');
+    throw new Error('ID Muzakki "' + id + '" tidak dijumpai dalam PAYER_LIST.');
   }
   if (!/^\d{4}$/.test(tahun)) throw new Error('Tahun mesti 4 angka (contoh: 2026).');
 
@@ -349,6 +237,122 @@ function sahkanRekod(ss, payload) {
   };
 }
 
+/**
+ * Seragamkan pautan resit.
+ *
+ * Pautan Google Drive (pelbagai format) ditukar kepada:
+ *   - imej (JPG/PNG/WEBP) : https://lh3.googleusercontent.com/d/FILEID
+ *   - PDF / lain-lain     : https://drive.google.com/file/d/FILEID/preview
+ * Jenis fail dikesan melalui Drive. Jika fail tidak dapat dicapai oleh
+ * skrip, pautan preview digunakan (berfungsi untuk imej dan PDF).
+ *
+ * Pautan lh3 / preview sedia ada dikekalkan. URL https lain dikekalkan.
+ */
+function normalizePautanResit(nilai) {
+  var teks = String(nilai == null ? '' : nilai).trim();
+  if (!teks) return '';
+  if (teks.length > 500) throw new Error('Pautan resit terlalu panjang.');
+
+  if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
+  if (/^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/preview/i.test(teks)) return teks;
+
+  var fileId = ekstrakFileId(teks);
+  if (fileId) return pautanDariFileId(fileId);
+
+  if (/^https:\/\//i.test(teks)) return teks;
+
+  throw new Error('Pautan resit tidak sah. Gunakan pautan perkongsian Google Drive atau URL https.');
+}
+
+/** Bina pautan paparan ikut jenis fail: imej -> lh3, selain itu -> preview. */
+function pautanDariFileId(fileId) {
+  var mime = '';
+  try {
+    mime = String(DriveApp.getFileById(fileId).getMimeType() || '');
+  } catch (e) {
+    // Fail tidak dapat dicapai skrip — guna preview (sah untuk imej & PDF)
+  }
+  if (/^image\//i.test(mime)) {
+    return 'https://lh3.googleusercontent.com/d/' + fileId;
+  }
+  return 'https://drive.google.com/file/d/' + fileId + '/preview';
+}
+
+/**
+ * Simpan fail resit yang dimuat naik admin ke folder Drive, kongsi sebagai
+ * "Anyone with the link", dan pulangkan pautan paparan.
+ * Pulang '' jika tiada fail dihantar.
+ */
+function simpanFailResit(payload, id, tahun) {
+  if (!payload.fileBase64) return '';
+
+  var mime = String(payload.fileMime || '').toLowerCase();
+  if (MIME_DIBENARKAN.indexOf(mime) === -1) {
+    throw new Error('Jenis fail tidak dibenarkan. Gunakan PDF, JPG atau PNG.');
+  }
+
+  var bytes;
+  try {
+    bytes = Utilities.base64Decode(String(payload.fileBase64));
+  } catch (e) {
+    throw new Error('Fail rosak atau tidak dapat dibaca.');
+  }
+  if (bytes.length > SAIZ_MAKS_BYTE) {
+    throw new Error('Saiz fail melebihi had ' + (SAIZ_MAKS_BYTE / 1024 / 1024) + 'MB.');
+  }
+
+  var ext = mime === 'application/pdf' ? 'pdf'
+          : mime === 'image/png'       ? 'png'
+          : mime === 'image/webp'      ? 'webp' : 'jpg';
+  var cap = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'yyyyMMdd-HHmmss');
+  var nama = 'RESIT_' + id + '_' + tahun + '_' + cap + '.' + ext;
+
+  var folder;
+  try {
+    folder = DriveApp.getFolderById(FOLDER_RESIT_ID);
+  } catch (e) {
+    throw new Error('Folder resit tidak dapat dicapai. Semak FOLDER_RESIT_ID dan kebenaran akaun.');
+  }
+
+  var fail = folder.createFile(Utilities.newBlob(bytes, mime, nama));
+  try {
+    fail.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) {
+    throw new Error('Fail disimpan tetapi gagal dikongsi (' + nama + '). ' +
+      'Dasar Google Workspace mungkin menyekat perkongsian luar.');
+  }
+
+  return pautanDariFileId(fail.getId());
+}
+
+/** Jalankan sekali dari editor untuk beri kebenaran Drive & semak folder. */
+function ujiAkses() {
+  var folder = DriveApp.getFolderById(FOLDER_RESIT_ID);
+  Logger.log('Folder OK: ' + folder.getName());
+}
+
+/** Cari FILE ID daripada pelbagai format pautan Google Drive. */
+function ekstrakFileId(teks) {
+  var corak = [
+    /\/d\/([a-zA-Z0-9_-]{15,})/,        // /file/d/FILEID/ atau /d/FILEID
+    /[?&]id=([a-zA-Z0-9_-]{15,})/,      // ?id=FILEID
+    /^([a-zA-Z0-9_-]{25,})$/            // FILEID sahaja
+  ];
+  for (var i = 0; i < corak.length; i++) {
+    var padanan = teks.match(corak[i]);
+    if (padanan) return padanan[1];
+  }
+  return null;
+}
+
+/** Pastikan lajur E mempunyai header RESIT. */
+function pastikanHeaderResit(sheet) {
+  var sedia = String(sheet.getRange(1, LAJUR_RESIT).getValue()).trim();
+  if (!sedia) {
+    sheet.getRange(1, LAJUR_RESIT).setValue('RESIT').setFontWeight('bold');
+  }
+}
+
 /** Periksa sama ada ID Muzakki wujud dalam tab PAYER_LIST. */
 function idMuzakkiWujud(ss, id) {
   var sheet = getSheetById(ss, GID_PAYER_LIST);
@@ -370,43 +374,12 @@ function getSheetById(ss, gid) {
   return null;
 }
 
-/** Dapatkan tab mengikut nama; cipta berserta header jika belum ada. */
-function getOrCreateSheet(ss, nama, header) {
-  var sheet = ss.getSheetByName(nama);
-  if (!sheet) {
-    sheet = ss.insertSheet(nama);
-    sheet.appendRow(header);
-    sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
-    sheet.setFrozenRows(1);
-  } else if (sheet.getLastRow() === 0) {
-    sheet.appendRow(header);
-    sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
-
 /** Seragamkan format ID: buang ruang, huruf besar. */
 function normalizeId(nilai) {
   return String(nilai == null ? '' : nilai).trim().toUpperCase();
 }
 
-/** Potong teks supaya tidak melebihi had panjang. */
-function potong(nilai, had) {
-  var teks = String(nilai == null ? '' : nilai).trim();
-  return teks.length > had ? teks.substring(0, had) : teks;
-}
-
-/** Tarikh + masa dalam format tempatan (DD/MM/YYYY HH:mm). */
-function formatTarikh(nilai) {
-  if (!nilai) return '';
-  if (Object.prototype.toString.call(nilai) === '[object Date]') {
-    return Utilities.formatDate(nilai, 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm');
-  }
-  return String(nilai).trim();
-}
-
-/** Tarikh sahaja dalam format YYYY-MM-DD (selaras dengan rekod rasmi). */
+/** Tarikh dalam format YYYY-MM-DD. */
 function formatTarikhSahaja(nilai) {
   if (!nilai) return '';
   if (Object.prototype.toString.call(nilai) === '[object Date]') {
@@ -415,9 +388,10 @@ function formatTarikhSahaja(nilai) {
   return String(nilai).trim();
 }
 
-/** Respon JSON standard kepada HTML. */
-function respon(status, message) {
+/** Respon JSON standard kepada HTML. `tambahan` digabung ke dalam respon. */
+function respon(status, message, tambahan) {
   var result = { status: status, message: message };
+  if (tambahan) for (var k in tambahan) result[k] = tambahan[k];
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
 }
