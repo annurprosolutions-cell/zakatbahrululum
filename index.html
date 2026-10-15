@@ -376,21 +376,6 @@
                     </div>
                 </div>
 
-                <!-- Lapor Resit Tiada Dalam Rekod -->
-                <div class="mb-5 relative z-10 bg-[#003d33] border border-teal-700/50 rounded-[1.2rem] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        <div>
-                            <p class="text-sm font-bold text-white leading-snug">Ada resit yang tiada dalam senarai?</p>
-                            <p class="text-xs text-teal-300 font-medium mt-0.5">Hantar rekod resit anda secara manual untuk semakan pihak pengurusan.</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="openResitModal()" class="shrink-0 bg-amber-400 hover:bg-amber-300 text-teal-950 px-5 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-amber-400/20 transition-all flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                        Hantar Rekod Resit
-                    </button>
-                </div>
-
                 <div id="recordsList" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
                     <!-- Rekod dari JS -->
                 </div>
@@ -461,76 +446,48 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL HANTAR REKOD RESIT MANUAL            -->
+    <!-- LIGHTBOX RESIT ZAKAT                       -->
     <!-- ========================================== -->
-    <div id="resitModal" class="fixed inset-0 bg-teal-950/80 z-[60] hidden flex-col justify-end md:justify-center items-center backdrop-blur-sm transition-all duration-300">
-        <div class="bg-white w-full max-w-md md:rounded-[2rem] rounded-t-[2rem] shadow-2xl overflow-hidden animate-fade-in-up max-h-[92vh] overflow-y-auto custom-scrollbar">
+    <div id="resitLightbox" class="fixed inset-0 bg-teal-950/90 z-[70] hidden flex-col justify-center items-center backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg flex flex-col max-h-[92vh] animate-fade-in-up" onclick="event.stopPropagation()">
 
-            <!-- Header Modal -->
-            <div class="bg-teal-800 p-6 flex justify-between items-start text-white relative sticky top-0 z-20">
-                <div class="relative z-10 pr-3">
-                    <h2 class="text-xl font-extrabold">Hantar Rekod Resit</h2>
-                    <p class="text-teal-200 text-sm font-medium mt-1">Untuk semakan &amp; pengesahan pihak pengurusan</p>
+            <!-- Bar Atas -->
+            <div class="flex items-center justify-between gap-3 mb-3 text-white">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Resit Zakat</p>
+                    <p id="resitTajuk" class="font-bold text-lg leading-tight truncate">-</p>
                 </div>
-                <button onclick="closeResitModal()" class="relative z-10 bg-teal-900/50 hover:bg-teal-900 rounded-full p-2 text-teal-100 hover:text-white transition-colors shrink-0">
+                <button onclick="closeResit()" aria-label="Tutup" class="shrink-0 bg-teal-800/80 hover:bg-teal-700 border border-teal-600/50 rounded-full p-2.5 text-teal-100 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
             </div>
 
-            <form id="resitForm" class="p-6 md:p-8 space-y-4">
-
-                <!-- Notis -->
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex gap-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                    <p class="text-[11px] text-amber-800 font-medium leading-relaxed">Rekod yang dihantar <strong>belum menjadi rekod rasmi</strong>. Pihak pengurusan akan menyemak dan mengesahkan resit anda sebelum ia dikemaskini ke dalam sistem.</p>
+            <!-- Papar Imej -->
+            <div class="bg-white rounded-[1.5rem] overflow-hidden shadow-2xl flex-1 min-h-0 flex items-center justify-center relative">
+                <!-- Loader -->
+                <div id="resitLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <p class="text-slate-500 font-semibold text-sm">Memuatkan resit...</p>
                 </div>
 
-                <!-- ID Muzakki (auto, kunci) -->
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">ID Muzakki</label>
-                    <input type="text" id="resitId" readonly class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-600 cursor-not-allowed uppercase" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Tahun Zakat <span class="text-rose-500">*</span></label>
-                        <input type="number" id="resitTahun" required min="2000" max="2099" placeholder="YYYY" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-bold text-slate-800" />
+                <!-- Ralat -->
+                <div id="resitRalat" class="hidden absolute inset-0 flex-col items-center justify-center bg-white z-10 p-8 text-center">
+                    <div class="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Jumlah (RM) <span class="text-rose-500">*</span></label>
-                        <input type="number" id="resitJumlah" required step="0.01" min="0.01" placeholder="0.00" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-bold text-slate-800" />
-                    </div>
+                    <p class="font-bold text-slate-800 mb-1">Resit tidak dapat dipaparkan</p>
+                    <p class="text-sm text-slate-500 font-medium leading-relaxed">Fail mungkin telah dialih atau tetapan perkongsiannya berubah. Sila rujuk Hotline <span class="font-bold text-teal-700">011-55335082</span>.</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Tarikh Bayar <span class="text-rose-500">*</span></label>
-                    <input type="date" id="resitTarikh" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-bold text-slate-700" />
-                </div>
+                <img id="resitImej" src="" alt="Resit zakat" class="max-w-full max-h-[70vh] object-contain" />
+            </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">No. Resit / Rujukan Bayaran <span class="text-rose-500">*</span></label>
-                    <input type="text" id="resitNo" required maxlength="50" placeholder="Cth: RSB2026001 / No. rujukan bank" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-semibold text-slate-800" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Nama Pembayar</label>
-                    <input type="text" id="resitNama" maxlength="100" placeholder="Nama penuh (pilihan)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-semibold text-slate-800" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Catatan</label>
-                    <textarea id="resitCatatan" maxlength="500" rows="2" placeholder="Cth: Bayaran melalui FPX, salinan resit dihantar ke WhatsApp hotline." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none font-medium text-slate-800 resize-none"></textarea>
-                </div>
-
-                <!-- Status Mesej -->
-                <div id="resitMsg" class="hidden rounded-xl p-4 text-sm font-medium"></div>
-
-                <button type="submit" id="resitBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-md shadow-teal-600/30 flex items-center justify-center gap-2">
-                    Hantar Untuk Semakan
-                </button>
-
-                <p class="text-[10px] text-slate-400 font-medium text-center leading-relaxed">Sila simpan resit asal anda. Pihak pengurusan mungkin menghubungi anda untuk pengesahan melalui Hotline 011-55335082.</p>
-            </form>
+            <!-- Butang Muat Turun -->
+            <button id="resitDownloadBtn" onclick="downloadResit()" class="mt-3 w-full bg-emerald-500 hover:bg-emerald-400 text-teal-950 font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Muat Turun Resit
+            </button>
+            <p class="text-center text-teal-300/70 text-[10px] font-medium mt-2">Ketik di luar kotak untuk tutup</p>
         </div>
     </div>
 
@@ -573,10 +530,6 @@
         const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
         const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
 
-        // URL Web App Google Apps Script (untuk hantar rekod resit manual)
-        // GANTIKAN dengan URL /exec deployment anda.
-        const URL_APPSCRIPT_WEBAPP = 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI';
-
         // Hotline rujukan percanggahan rekod
         const HOTLINE_ZAKAT = '011-55335082';
 
@@ -584,7 +537,8 @@
         let globalPayers = [];
         let globalRecords = [];
         let chartInstance = null;
-        let activePayerId = null; // ID Muzakki yang sedang dipaparkan
+        let activePayerId = null;  // ID Muzakki yang sedang dipaparkan
+        let rekodDipapar = [];     // rekod yang sedang dipapar pada senarai
 
         // Sasaran Kutipan Tahunan
         const TARGET_KUTIPAN = 100000;
@@ -856,7 +810,16 @@
             if (transCount === 0) {
                 rList.innerHTML = `<div class="text-center py-8 bg-[#003d33] rounded-2xl border border-teal-700/50 border-dashed text-teal-300">Tiada rekod pembayaran dijumpai.</div>`;
             } else {
-                userRecords.forEach(r => {
+                rekodDipapar = userRecords; // rujukan untuk butang resit
+                userRecords.forEach((r, idx) => {
+                    const pautanResit = normalizePautanResit(r.RESIT);
+                    const butangResit = pautanResit
+                        ? `<button type="button" onclick="openResitDariIndex(${idx})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors" title="Lihat resit">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                Resit
+                           </button>`
+                        : `<span class="text-teal-600/60 text-[10px] font-bold px-2 py-1.5 border border-teal-700/40 border-dashed rounded-lg">Tiada resit</span>`;
+
                     rList.insertAdjacentHTML('beforeend', `
                         <div class="bg-[#003d33] hover:bg-[#00332a] transition-colors duration-200 rounded-[1.2rem] p-4 flex items-center justify-between border border-teal-700/50">
                             <div class="flex items-center gap-4">
@@ -872,9 +835,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Selesai
+                            <div class="flex flex-col items-end gap-2 shrink-0">
+                                <div class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    Selesai
+                                </div>
+                                ${butangResit}
                             </div>
                         </div>
                     `);
@@ -885,137 +851,141 @@
         });
 
         // ==========================================
-        // HANTAR REKOD RESIT MANUAL (oleh Muzakki)
+        // LIGHTBOX RESIT ZAKAT
         // ==========================================
-        function openResitModal() {
-            if (!activePayerId) {
-                alert('Sila buat semakan menggunakan ID Muzakki anda terlebih dahulu.');
-                return;
+        let resitAktif = { url: '', nama: 'resit-zakat.jpg' };
+
+        /**
+         * Tukar pelbagai bentuk pautan Google Drive kepada pautan imej terus
+         * (lh3.googleusercontent.com) supaya boleh dipaparkan dalam popup.
+         * Pautan imej https biasa dikekalkan seadanya.
+         */
+        function normalizePautanResit(nilai) {
+            const teks = String(nilai == null ? '' : nilai).trim();
+            if (!teks) return '';
+            if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
+
+            const corak = [
+                /\/d\/([a-zA-Z0-9_-]{15,})/,     // /file/d/FILEID/ atau /d/FILEID
+                /[?&]id=([a-zA-Z0-9_-]{15,})/,   // ?id=FILEID
+                /^([a-zA-Z0-9_-]{25,})$/         // FILEID sahaja
+            ];
+            for (const c of corak) {
+                const padanan = teks.match(c);
+                if (padanan) return 'https://lh3.googleusercontent.com/d/' + padanan[1];
             }
 
-            const modal = document.getElementById('resitModal');
-            document.getElementById('resitId').value = activePayerId;
-
-            // Prefill tahun semasa & tarikh hari ini
-            const hariIni = new Date();
-            document.getElementById('resitTahun').value = hariIni.getFullYear();
-            document.getElementById('resitTarikh').value = hariIni.toISOString().split('T')[0];
-            document.getElementById('resitTarikh').max = hariIni.toISOString().split('T')[0];
-            document.getElementById('resitTahun').max = hariIni.getFullYear();
-
-            resitHideMsg();
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            return /^https:\/\//i.test(teks) ? teks : '';
         }
 
-        function closeResitModal() {
-            const modal = document.getElementById('resitModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-
-            document.getElementById('resitForm').reset();
-            resitHideMsg();
+        function openResitDariIndex(idx) {
+            const r = rekodDipapar[idx];
+            if (!r) return;
+            const tajuk = `Tahun ${r.TAHUN} · ${formatCurrency(parseFloat(r.JUMLAH) || 0)}`;
+            const namaFail = `resit-zakat-${activePayerId || 'muzakki'}-${r.TAHUN}.jpg`;
+            openResit(r.RESIT, tajuk, namaFail);
         }
 
-        function resitHideMsg() {
-            const box = document.getElementById('resitMsg');
+        function openResit(url, tajuk, namaFail) {
+            const pautan = normalizePautanResit(url);
+            if (!pautan) return;
+
+            resitAktif = { url: pautan, nama: namaFail || 'resit-zakat.jpg' };
+
+            const box    = document.getElementById('resitLightbox');
+            const imej   = document.getElementById('resitImej');
+            const loader = document.getElementById('resitLoader');
+            const ralat  = document.getElementById('resitRalat');
+            const btn    = document.getElementById('resitDownloadBtn');
+
+            document.getElementById('resitTajuk').textContent = tajuk || 'Resit Zakat';
+
+            // Reset keadaan
+            loader.classList.remove('hidden');
+            ralat.classList.add('hidden');
+            ralat.classList.remove('flex');
+            imej.classList.remove('hidden');
+            imej.src = '';
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            imej.onload = () => loader.classList.add('hidden');
+            imej.onerror = () => {
+                loader.classList.add('hidden');
+                imej.classList.add('hidden');
+                ralat.classList.remove('hidden');
+                ralat.classList.add('flex');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            };
+            imej.src = pautan;
+
+            box.classList.remove('hidden');
+            box.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // kunci skrol latar
+        }
+
+        function closeResit() {
+            const box = document.getElementById('resitLightbox');
             box.classList.add('hidden');
-            box.textContent = '';
+            box.classList.remove('flex');
+            document.getElementById('resitImej').src = '';
+            document.body.style.overflow = '';
         }
 
-        function resitShowMsg(jenis, teks) {
-            const box = document.getElementById('resitMsg');
-            box.textContent = teks;
-            box.className = jenis === 'success'
-                ? 'rounded-xl p-4 text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'rounded-xl p-4 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-200';
-        }
+        /**
+         * Muat turun resit tanpa membuka tab baharu.
+         * Cuba ambil sebagai blob dahulu; jika disekat CORS, guna anchor
+         * dengan atribut download sebagai sandaran.
+         */
+        async function downloadResit() {
+            if (!resitAktif.url) return;
 
-        document.getElementById('resitForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const btn = document.getElementById('resitBtn');
+            const btn = document.getElementById('resitDownloadBtn');
             const teksAsal = btn.innerHTML;
-
-            const tahun   = document.getElementById('resitTahun').value.trim();
-            const jumlah  = document.getElementById('resitJumlah').value.trim();
-            const tarikh  = document.getElementById('resitTarikh').value;
-            const noResit = document.getElementById('resitNo').value.trim();
-            const nama    = document.getElementById('resitNama').value.trim();
-            const catatan = document.getElementById('resitCatatan').value.trim();
-
-            // Validasi sisi klien
-            if (!/^\d{4}$/.test(tahun)) {
-                resitShowMsg('error', 'Tahun zakat mesti 4 angka (contoh: 2026).');
-                return;
-            }
-            if (!(parseFloat(jumlah) > 0)) {
-                resitShowMsg('error', 'Jumlah bayaran mesti lebih daripada RM 0.');
-                return;
-            }
-            if (!tarikh) {
-                resitShowMsg('error', 'Sila pilih tarikh bayar.');
-                return;
-            }
-            if (!noResit) {
-                resitShowMsg('error', 'Sila masukkan no. resit atau rujukan bayaran.');
-                return;
-            }
-
-            resitHideMsg();
-            btn.innerHTML = 'Menghantar...';
+            btn.innerHTML = 'Memuat turun...';
             btn.disabled = true;
-            btn.classList.add('opacity-70');
 
             try {
-                if (URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') {
-                    throw new Error('Fungsi hantar resit belum diaktifkan. Sila hubungi Hotline ' + HOTLINE_ZAKAT + '.');
-                }
+                const response = await fetch(resitAktif.url, { mode: 'cors' });
+                if (!response.ok) throw new Error('Gagal mengambil fail.');
 
-                const response = await fetch(URL_APPSCRIPT_WEBAPP, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'submitResit',
-                        id: activePayerId,
-                        year: tahun,
-                        amount: jumlah,
-                        date: tarikh,
-                        receipt: noResit,
-                        name: nama,
-                        note: catatan
-                    })
-                });
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
 
-                const result = await response.json();
-                if (result.status !== 'success') throw new Error(result.message);
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = resitAktif.nama;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
 
-                resitShowMsg('success', result.message);
-                document.getElementById('resitForm').querySelectorAll('input:not([readonly]), textarea')
-                    .forEach(el => { el.value = ''; });
-                btn.innerHTML = 'Selesai';
-                setTimeout(closeResitModal, 3500);
-                return;
-
-            } catch (error) {
-                let mesej = error.message || 'Gagal menghantar rekod. Sila cuba lagi.';
-                // Elak hotline disebut dua kali jika mesej pelayan sudah menyertakannya
-                if (mesej.indexOf(HOTLINE_ZAKAT) === -1) {
-                    mesej += ' Jika masalah berterusan, sila rujuk Hotline ' + HOTLINE_ZAKAT + '.';
-                }
-                resitShowMsg('error', mesej);
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+            } catch (err) {
+                // Sandaran: biar pelayar uruskan muat turun secara terus
+                const a = document.createElement('a');
+                a.href = resitAktif.url;
+                a.download = resitAktif.nama;
+                a.rel = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             } finally {
-                if (btn.innerHTML !== 'Selesai') {
-                    btn.innerHTML = teksAsal;
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-70');
-                }
+                btn.innerHTML = teksAsal;
+                btn.disabled = false;
             }
+        }
+
+        // Tutup bila ketik latar belakang
+        document.getElementById('resitLightbox').addEventListener('click', function(e) {
+            if (e.target === this) closeResit();
         });
 
-        // Tutup modal bila klik latar belakang
-        document.getElementById('resitModal').addEventListener('click', function(e) {
-            if (e.target === this) closeResitModal();
+        // Tutup dengan kekunci Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('resitLightbox').classList.contains('hidden')) {
+                closeResit();
+            }
         });
 
         // Start Fetching Data

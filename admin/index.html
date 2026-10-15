@@ -59,10 +59,6 @@
         <div class="flex border-b border-slate-200 mb-6 gap-2">
             <button id="btnTabDashboard" onclick="switchTab('dashboard')" class="px-6 py-3 border-b-2 border-blue-600 text-blue-600 font-bold focus:outline-none transition-colors">Dashboard</button>
             <button id="btnTabManage" onclick="switchTab('manage')" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-blue-600 font-semibold focus:outline-none transition-colors">Pengurusan Muzakki</button>
-            <button id="btnTabResit" onclick="switchTab('resit')" class="px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-blue-600 font-semibold focus:outline-none transition-colors flex items-center gap-2">
-                Resit Manual
-                <span id="badgeResitPending" class="hidden bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">0</span>
-            </button>
         </div>
 
         <!-- Tab 1: Dashboard -->
@@ -237,6 +233,11 @@
                                     <label class="block text-sm font-bold text-slate-700 mb-1">Tarikh Bayar (Wajib)</label>
                                     <input type="date" id="inputRecordDate" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-700" required>
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">Pautan Resit <span class="font-medium text-slate-400">(pilihan)</span></label>
+                                    <input type="url" id="inputRecordReceipt" placeholder="Tampal link Google Drive resit" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium text-sm text-slate-700">
+                                    <p class="text-[11px] text-slate-400 font-medium mt-1.5 leading-relaxed">Tampal pautan perkongsian Drive terus &mdash; sistem akan tukar sendiri ke format imej. Pastikan fail dikongsi sebagai <strong>Anyone with the link</strong>.</p>
+                                </div>
                                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md shadow-emerald-600/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                                     Simpan Rekod
@@ -261,7 +262,7 @@
                                         <th class="px-4 py-3">Tahun</th>
                                         <th class="px-4 py-3">Jumlah (RM)</th>
                                         <th class="px-4 py-3">Tarikh Bayar</th>
-                                        <th class="px-4 py-3 text-right">Tindakan</th>
+                                        <th class="px-4 py-3 text-right">Resit</th>
                                     </tr>
                                 </thead>
                                 <tbody id="manageHistoryList" class="text-sm">
@@ -271,59 +272,6 @@
                         </div>
                     </div>
 
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab 3: Resit Manual (hantaran Muzakki) -->
-        <div id="tabResit" class="hidden space-y-6 animate-fade-in-up">
-
-            <div class="glass-card p-6 bg-gradient-to-r from-amber-50 to-white border border-amber-100">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-start gap-3">
-                        <div class="bg-amber-100 text-amber-600 p-2 rounded-lg shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800">Rekod Resit Hantaran Muzakki</h2>
-                            <p class="text-sm text-slate-500 font-medium mt-0.5">Rekod yang <strong>DITERIMA</strong> akan dimasukkan terus ke rekod rasmi pembayaran.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2 items-center">
-                        <select id="filterResitStatus" onchange="loadResitList()" class="bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-600 focus:outline-none shadow-sm cursor-pointer">
-                            <option value="MENUNGGU">Menunggu Semakan</option>
-                            <option value="DITERIMA">Diterima</option>
-                            <option value="DITOLAK">Ditolak</option>
-                            <option value="SEMUA">Semua</option>
-                        </select>
-                        <input type="text" id="inputReviewer" maxlength="100" placeholder="Nama admin penyemak" class="bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-600 focus:outline-none shadow-sm w-full sm:w-52" />
-                        <button onclick="loadResitList()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors shadow-md shadow-blue-600/30">
-                            Muat Semula
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card p-0 overflow-hidden">
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[900px]">
-                        <thead class="bg-slate-50">
-                            <tr class="text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-4 py-3">Masa Hantar</th>
-                                <th class="px-4 py-3">ID Muzakki</th>
-                                <th class="px-4 py-3">Tahun</th>
-                                <th class="px-4 py-3">Jumlah</th>
-                                <th class="px-4 py-3">Tarikh Bayar</th>
-                                <th class="px-4 py-3">No. Resit</th>
-                                <th class="px-4 py-3">Pembayar / Catatan</th>
-                                <th class="px-4 py-3 text-right">Tindakan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resitTableBody" class="text-sm">
-                            <tr><td colspan="8" class="px-4 py-10 text-center text-slate-400 font-medium">Klik <strong>Muat Semula</strong> untuk memuatkan senarai.</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -343,6 +291,25 @@
         </div>
         <p class="text-center text-slate-400 text-xs font-medium mt-4">e-Muzakki Bahrul Ulum &mdash; Sistem Rekod Muzakki &copy; 2026</p>
     </footer>
+
+    <!-- Lightbox Resit -->
+    <div id="adminResitBox" class="fixed inset-0 bg-slate-900/85 z-[70] hidden flex-col justify-center items-center backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg flex flex-col max-h-[92vh] animate-fade-in-up" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between gap-3 mb-3 text-white">
+                <p id="adminResitTajuk" class="font-bold text-lg leading-tight truncate">Resit Zakat</p>
+                <button onclick="tutupResitAdmin()" aria-label="Tutup" class="shrink-0 bg-slate-800/80 hover:bg-slate-700 border border-slate-600 rounded-full p-2.5 text-slate-200 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center relative min-h-[200px]">
+                <div id="adminResitRalat" class="hidden absolute inset-0 flex-col items-center justify-center bg-white z-10 p-8 text-center">
+                    <p class="font-bold text-slate-800 mb-1">Resit tidak dapat dipaparkan</p>
+                    <p class="text-sm text-slate-500 font-medium">Semak tetapan perkongsian fail di Google Drive.</p>
+                </div>
+                <img id="adminResitImej" src="" alt="Resit zakat" class="max-w-full max-h-[75vh] object-contain" />
+            </div>
+        </div>
+    </div>
 
     <!-- Modals (Custom Message Box) -->
     <div id="customModal" class="fixed inset-0 bg-slate-900/60 z-[60] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
@@ -429,9 +396,6 @@
                 document.getElementById('metricTotalPayers').textContent = totalPayers;
                 document.getElementById('metricActivePayers').textContent = activePayers;
                 
-                // Kira hantaran resit yang menunggu semakan (tidak menghalang pemuatan)
-                kiraBadgeResit().catch(() => {});
-
                 // Hide loader
                 const loader = document.getElementById('loadingOverlay');
                 loader.style.opacity = '0';
@@ -617,7 +581,6 @@
             const tabs = {
                 dashboard: { panel: 'tabDashboard', btn: 'btnTabDashboard' },
                 manage:    { panel: 'tabManage',    btn: 'btnTabManage' },
-                resit:     { panel: 'tabResit',     btn: 'btnTabResit' }
             };
             if (!tabs[tabName]) tabName = 'dashboard';
 
@@ -625,16 +588,12 @@
                 const isAktif = (key === tabName);
                 document.getElementById(tabs[key].panel).classList.toggle('hidden', !isAktif);
 
-                const btn = document.getElementById(tabs[key].btn);
-                btn.className = isAktif ? TAB_CLASS_AKTIF : TAB_CLASS_PASIF;
-                // Kekalkan susun atur flex pada butang yang ada badge
-                if (key === 'resit') btn.className += ' flex items-center gap-2';
+                document.getElementById(tabs[key].btn).className =
+                    isAktif ? TAB_CLASS_AKTIF : TAB_CLASS_PASIF;
             });
 
             if (tabName === 'manage') {
                 setTimeout(() => document.getElementById('searchManageId').focus(), 100);
-            } else if (tabName === 'resit') {
-                loadResitList();
             }
         }
 
@@ -708,8 +667,16 @@
             if(userRecords.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 italic bg-slate-50/50 rounded-b-lg">Tiada rekod pembayaran dijumpai.</td></tr>';
             } else {
+                rekodDipaparAdmin = userRecords;
                 userRecords.forEach((r, idx) => {
                     const isLatest = idx === 0 ? '<span class="ml-2 text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase tracking-wider">Terkini</span>' : '';
+                    const pautanResit = normalizePautanResit(r.RESIT);
+                    const selResit = pautanResit
+                        ? `<div class="flex gap-2 justify-end">
+                               <button onclick="lihatResitAdmin(${idx})" class="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Lihat</button>
+                               <button onclick="editResitAdmin(${idx})" class="bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Tukar</button>
+                           </div>`
+                        : `<button onclick="editResitAdmin(${idx})" class="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">+ Tambah Resit</button>`;
                     const row = `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                             <td class="px-4 py-4 font-bold text-slate-700">
@@ -717,12 +684,7 @@
                             </td>
                             <td class="px-4 py-4 font-black text-slate-900">${formatCurrency(parseFloat(r.JUMLAH) || 0)}</td>
                             <td class="px-4 py-4 font-medium text-slate-600">${r.TARIKH_BAYAR || 'Tiada Maklumat'} ${isLatest}</td>
-                            <td class="px-4 py-4 text-right">
-                                <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                                    Berjaya
-                                </span>
-                            </td>
+                            <td class="px-4 py-4 text-right">${selResit}</td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
@@ -776,6 +738,7 @@
             const year = document.getElementById('inputRecordYear').value;
             const amount = document.getElementById('inputRecordAmount').value;
             const date = document.getElementById('inputRecordDate').value; // YYYY-MM-DD
+            const receipt = document.getElementById('inputRecordReceipt').value.trim();
             
             const btnSubmit = this.querySelector('button[type="submit"]');
             const originalHTML = btnSubmit.innerHTML;
@@ -788,7 +751,7 @@
                 const response = await fetch(URL_APPSCRIPT_WEBAPP, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date })
+                    body: JSON.stringify({ action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date, receipt: receipt })
                 });
 
                 const result = await response.json();
@@ -796,10 +759,11 @@
                     showModal("Rekod Ditambah!", `Bayaran RM${amount} (Tahun ${year}) untuk ${selectedPayerId} berjaya direkod ke pangkalan data.`, "success");
                     
                     // Reset input
-                    document.getElementById('inputRecordAmount').value = ''; 
-                    
+                    document.getElementById('inputRecordAmount').value = '';
+                    document.getElementById('inputRecordReceipt').value = '';
+
                     // Update memory & re-render table
-                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date });
+                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date, RESIT: normalizePautanResit(receipt) });
                     
                     // Update Year Filter dropdown in case a new year was added
                     populateFilterDropdowns(); 
@@ -834,102 +798,92 @@
             return result;
         }
 
-        async function loadResitList() {
-            if (resitSedangMuat) return;
-            resitSedangMuat = true;
+        // ==========================================
+        // PAUTAN RESIT
+        // ==========================================
+        let rekodDipaparAdmin = [];
 
-            const tbody = document.getElementById('resitTableBody');
-            const filter = document.getElementById('filterResitStatus').value;
-            tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-400 font-medium">Memuatkan senarai...</td></tr>';
+        /** Tukar pautan Google Drive kepada pautan imej terus (lh3). */
+        function normalizePautanResit(nilai) {
+            const teks = String(nilai == null ? '' : nilai).trim();
+            if (!teks) return '';
+            if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
 
-            try {
-                const result = await panggilApi({ action: 'listResit', filter: filter });
-                renderResitList(result.data || []);
-                await kiraBadgeResit();
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-rose-600 font-semibold">${escapeHtml(error.message)}</td></tr>`;
-            } finally {
-                resitSedangMuat = false;
+            const corak = [
+                /\/d\/([a-zA-Z0-9_-]{15,})/,
+                /[?&]id=([a-zA-Z0-9_-]{15,})/,
+                /^([a-zA-Z0-9_-]{25,})$/
+            ];
+            for (const c of corak) {
+                const padanan = teks.match(c);
+                if (padanan) return 'https://lh3.googleusercontent.com/d/' + padanan[1];
             }
+            return /^https:\/\//i.test(teks) ? teks : '';
         }
 
-        async function kiraBadgeResit() {
-            const badge = document.getElementById('badgeResitPending');
-            try {
-                const result = await panggilApi({ action: 'listResit', filter: 'MENUNGGU' });
-                const bil = (result.data || []).length;
-                badge.textContent = bil;
-                badge.classList.toggle('hidden', bil === 0);
-            } catch (error) {
-                badge.classList.add('hidden');
-            }
+        function lihatResitAdmin(idx) {
+            const r = rekodDipaparAdmin[idx];
+            if (!r) return;
+
+            const pautan = normalizePautanResit(r.RESIT);
+            if (!pautan) return;
+
+            const box   = document.getElementById('adminResitBox');
+            const imej  = document.getElementById('adminResitImej');
+            const ralat = document.getElementById('adminResitRalat');
+
+            document.getElementById('adminResitTajuk').textContent =
+                `${selectedPayerId} · Tahun ${r.TAHUN} · ${formatCurrency(parseFloat(r.JUMLAH) || 0)}`;
+
+            ralat.classList.add('hidden');
+            ralat.classList.remove('flex');
+            imej.classList.remove('hidden');
+            imej.onerror = () => {
+                imej.classList.add('hidden');
+                ralat.classList.remove('hidden');
+                ralat.classList.add('flex');
+            };
+            imej.src = pautan;
+
+            box.classList.remove('hidden');
+            box.classList.add('flex');
         }
 
-        function renderResitList(senarai) {
-            const tbody = document.getElementById('resitTableBody');
-            tbody.innerHTML = '';
-
-            if (senarai.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-slate-400 font-medium">Tiada rekod untuk status ini.</td></tr>';
-                return;
-            }
-
-            senarai.forEach(r => {
-                let tindakan;
-                if (r.status === 'MENUNGGU') {
-                    tindakan = `
-                        <div class="flex gap-2 justify-end">
-                            <button onclick="reviewResit(${r.baris}, 'DITERIMA')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors shadow-sm">Terima</button>
-                            <button onclick="reviewResit(${r.baris}, 'DITOLAK')" class="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-lg transition-colors">Tolak</button>
-                        </div>`;
-                } else {
-                    const warna = r.status === 'DITERIMA'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-rose-50 text-rose-700 border-rose-200';
-                    const oleh = r.disemakOleh ? ` &middot; ${escapeHtml(r.disemakOleh)}` : '';
-                    tindakan = `<span class="inline-block ${warna} border px-3 py-1.5 rounded-full text-xs font-bold">${escapeHtml(r.status)}${oleh}</span>`;
-                }
-
-                const catatan = r.catatan
-                    ? `<div class="text-xs text-slate-400 font-medium mt-0.5 max-w-[220px] truncate" title="${escapeHtml(r.catatan)}">${escapeHtml(r.catatan)}</div>`
-                    : '';
-
-                tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-4 text-slate-500 font-medium whitespace-nowrap">${escapeHtml(r.timestamp)}</td>
-                        <td class="px-4 py-4 font-black text-slate-900 whitespace-nowrap">${escapeHtml(r.id)}</td>
-                        <td class="px-4 py-4 font-bold text-slate-700">${escapeHtml(r.tahun)}</td>
-                        <td class="px-4 py-4 font-black text-slate-900 whitespace-nowrap">${formatCurrency(r.jumlah)}</td>
-                        <td class="px-4 py-4 font-medium text-slate-600 whitespace-nowrap">${escapeHtml(r.tarikh)}</td>
-                        <td class="px-4 py-4 font-semibold text-slate-700">${escapeHtml(r.resit)}</td>
-                        <td class="px-4 py-4 text-slate-600 font-semibold">${escapeHtml(r.nama) || '<span class="text-slate-300">-</span>'}${catatan}</td>
-                        <td class="px-4 py-4 text-right">${tindakan}</td>
-                    </tr>
-                `);
-            });
+        function tutupResitAdmin() {
+            const box = document.getElementById('adminResitBox');
+            box.classList.add('hidden');
+            box.classList.remove('flex');
+            document.getElementById('adminResitImej').src = '';
         }
 
-        async function reviewResit(baris, keputusan) {
-            const reviewer = document.getElementById('inputReviewer').value.trim();
-            const label = keputusan === 'DITERIMA' ? 'TERIMA' : 'TOLAK';
+        async function editResitAdmin(idx) {
+            const r = rekodDipaparAdmin[idx];
+            if (!r) return;
 
-            if (!confirm(`Anda pasti mahu ${label} rekod resit ini?` +
-                (keputusan === 'DITERIMA' ? '\n\nRekod akan dimasukkan ke dalam rekod rasmi pembayaran.' : ''))) return;
+            const sedia = String(r.RESIT || '').trim();
+            const pautanBaru = prompt(
+                `Pautan resit untuk ${selectedPayerId} (Tahun ${r.TAHUN}).\n\n` +
+                'Tampal link perkongsian Google Drive. Biarkan kosong untuk membuang pautan.',
+                sedia
+            );
+            if (pautanBaru === null) return; // batal
 
             try {
                 const result = await panggilApi({
-                    action: 'reviewResit',
-                    row: baris,
-                    decision: keputusan,
-                    reviewer: reviewer
+                    action: 'updateResit',
+                    id: selectedPayerId,
+                    year: r.TAHUN,
+                    date: r.TARIKH_BAYAR || '',
+                    receipt: pautanBaru.trim()
                 });
-                showModal('Berjaya', result.message, 'success');
-                await loadResitList();
 
-                // Segarkan data rekod rasmi supaya dashboard & sejarah terkini
-                if (keputusan === 'DITERIMA') await refreshRekodRasmi();
+                // Kemaskini memori setempat
+                r.RESIT = normalizePautanResit(pautanBaru.trim());
+                renderManageHistory();
+
+                showModal('Berjaya', result.message, 'success');
             } catch (error) {
-                showModal('Gagal Disemak', error.message, 'error');
+                showModal('Gagal Dikemaskini', error.message, 'error');
             }
         }
 
@@ -968,6 +922,16 @@
         }
 
         function closeModal() { document.getElementById('customModal').classList.add('hidden'); }
+
+        document.getElementById('adminResitBox').addEventListener('click', function(e) {
+            if (e.target === this) tutupResitAdmin();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('adminResitBox').classList.contains('hidden')) {
+                tutupResitAdmin();
+            }
+        });
 
         window.onload = initializeDashboard;
     </script>
