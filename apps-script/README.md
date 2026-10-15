@@ -33,38 +33,48 @@ Tanpa header ini, portal awam tidak dapat membaca pautan resit.
 | Action | Fungsi |
 |---|---|
 | `updateStatus` | Kemaskini status Muzakki (Active/Inactive) |
-| `addRecord` | Tambah rekod pembayaran berserta pautan resit (pilihan) |
-| `updateResit` | Tukar atau buang pautan resit pada rekod sedia ada |
+| `addRecord` | Tambah rekod pembayaran; resit melalui pautan atau muat naik fail (pilihan) |
+| `updateResit` | Tukar, muat naik, atau buang resit pada rekod sedia ada |
 
-## Pautan resit
+## Resit (PDF & imej)
 
-Admin hanya perlu **tampal link perkongsian Google Drive** seperti biasa.
-Sistem menukarnya sendiri kepada pautan imej terus:
+Folder Drive resit: `11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B`
+(dikonfigurasi pada `FOLDER_RESIT_ID` dalam `Code.gs`).
 
-```
-https://drive.google.com/file/d/FILEID/view?usp=sharing
-https://drive.google.com/open?id=FILEID
-https://drive.google.com/uc?export=view&id=FILEID
-            ↓  semuanya jadi
-https://lh3.googleusercontent.com/d/FILEID
-```
+Admin ada dua cara memasukkan resit:
 
-Format `lh3` digunakan kerana ia boleh dipaparkan terus sebagai `<img>`
-dalam popup, tanpa membuka tab pelayar baharu.
+1. **Muat naik fail** (disyorkan) — pilih PDF/JPG/PNG (maks 8MB) dalam borang.
+   Apps Script simpan ke folder di atas, set perkongsian **Anyone with the link
+   → Viewer**, dan tulis pautan ke lajur E secara automatik.
+2. **Tampal pautan Drive** — jenis fail dikesan sendiri.
 
-**Syarat:** fail di Google Drive mesti dikongsi sebagai
-**Anyone with the link → Viewer**. Jika tidak, resit akan gagal dipaparkan.
+Format yang disimpan pada lajur `RESIT`:
 
-**Format fail:** gunakan imej (JPG / PNG). Fail PDF tidak dapat dipaparkan
-melalui `lh3` — tukar kepada imej dahulu, atau simpan resit sebagai
-screenshot.
+| Jenis fail | Disimpan sebagai | Dipapar dengan |
+|---|---|---|
+| JPG / PNG / WEBP | `https://lh3.googleusercontent.com/d/FILEID` | `<img>` |
+| PDF | `https://drive.google.com/file/d/FILEID/preview` | `<iframe>` pratonton Drive |
+
+Pautan Drive mentah yang ditaip terus dalam sheet (cth `.../view?usp=sharing`)
+turut dikenali dan dipapar sebagai pratonton PDF.
+
+Dalam popup, Muzakki boleh lihat resit terus atas skrin dan tekan **Muat Turun**
+(PDF dimuat turun melalui pautan `uc?export=download`, tanpa tab baharu).
+
+**Syarat:** fail mesti dikongsi sebagai *Anyone with the link*. Fail yang
+dimuat naik melalui sistem dikongsi automatik; fail yang diletak manual dalam
+folder perlu diset sendiri (atau kongsi seluruh folder).
+
+**Kebenaran Drive:** selepas tampal kod baharu, pilih fungsi `ujiAkses`
+dalam editor Apps Script, tekan **Run**, dan luluskan kebenaran Drive sekali.
+Kemudian deploy versi baharu.
 
 ## Aliran kerja
 
 ```
 Admin > Pengurusan Muzakki > cari ID
         ↓
-Tambah Rekod Baru (tahun, jumlah, tarikh, pautan resit)
+Tambah Rekod Baru (tahun, jumlah, tarikh, pautan atau fail resit)
    atau  klik "Tukar" / "+ Tambah Resit" pada rekod sedia ada
         ↓
 PAYMENT_RECORDS lajur E dikemaskini

@@ -236,7 +236,12 @@
                                 <div>
                                     <label class="block text-sm font-bold text-slate-700 mb-1">Pautan Resit <span class="font-medium text-slate-400">(pilihan)</span></label>
                                     <input type="url" id="inputRecordReceipt" placeholder="Tampal link Google Drive resit" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium text-sm text-slate-700">
-                                    <p class="text-[11px] text-slate-400 font-medium mt-1.5 leading-relaxed">Tampal pautan perkongsian Drive terus &mdash; sistem akan tukar sendiri ke format imej. Pastikan fail dikongsi sebagai <strong>Anyone with the link</strong>.</p>
+                                    <p class="text-[11px] text-slate-400 font-medium mt-1.5 leading-relaxed">Tampal pautan perkongsian Drive &mdash; PDF dan imej dikesan automatik. Fail mesti dikongsi sebagai <strong>Anyone with the link</strong>.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">Atau Muat Naik Fail Resit <span class="font-medium text-slate-400">(PDF / JPG / PNG, maks 8MB)</span></label>
+                                    <input type="file" id="inputRecordFile" accept="application/pdf,image/jpeg,image/png,image/webp" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 file:cursor-pointer bg-white border border-slate-300 rounded-lg">
+                                    <p class="text-[11px] text-slate-400 font-medium mt-1.5 leading-relaxed">Fail disimpan automatik dalam folder Drive resit dan dikongsi sendiri. Jika kedua-dua diisi, fail muat naik diutamakan.</p>
                                 </div>
                                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md shadow-emerald-600/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
@@ -306,7 +311,29 @@
                     <p class="font-bold text-slate-800 mb-1">Resit tidak dapat dipaparkan</p>
                     <p class="text-sm text-slate-500 font-medium">Semak tetapan perkongsian fail di Google Drive.</p>
                 </div>
-                <img id="adminResitImej" src="" alt="Resit zakat" class="max-w-full max-h-[75vh] object-contain" />
+                <img id="adminResitImej" src="" alt="Resit zakat" class="hidden max-w-full max-h-[75vh] object-contain" />
+                <iframe id="adminResitFrame" title="Resit zakat" src="about:blank" class="hidden w-full h-[75vh] bg-white border-0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tukar / Tambah Resit -->
+    <div id="editResitModal" class="fixed inset-0 bg-slate-900/60 z-[65] hidden justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in-up">
+            <h3 class="text-lg font-black text-slate-900 mb-1">Resit Pembayaran</h3>
+            <p id="editResitInfo" class="text-sm text-slate-500 font-medium mb-4">-</p>
+
+            <label class="block text-sm font-bold text-slate-700 mb-1">Pautan Resit</label>
+            <input type="url" id="editResitLink" placeholder="Tampal link Google Drive" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none font-medium text-sm text-slate-700 mb-4">
+
+            <label class="block text-sm font-bold text-slate-700 mb-1">Atau Muat Naik Fail <span class="font-medium text-slate-400">(PDF / JPG / PNG, maks 8MB)</span></label>
+            <input type="file" id="editResitFile" accept="application/pdf,image/jpeg,image/png,image/webp" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:cursor-pointer bg-white border border-slate-300 rounded-lg">
+
+            <p class="text-[11px] text-slate-400 font-medium mt-3 leading-relaxed">Kosongkan pautan dan jangan pilih fail untuk <strong>membuang</strong> resit.</p>
+
+            <div class="flex gap-2 mt-5">
+                <button type="button" onclick="tutupEditResit()" class="flex-1 bg-white border border-slate-300 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
+                <button type="button" id="editResitSimpan" onclick="simpanEditResit()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-blue-600/30">Simpan</button>
             </div>
         </div>
     </div>
@@ -670,7 +697,7 @@
                 rekodDipaparAdmin = userRecords;
                 userRecords.forEach((r, idx) => {
                     const isLatest = idx === 0 ? '<span class="ml-2 text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase tracking-wider">Terkini</span>' : '';
-                    const pautanResit = normalizePautanResit(r.RESIT);
+                    const pautanResit = parseResit(r.RESIT);
                     const selResit = pautanResit
                         ? `<div class="flex gap-2 justify-end">
                                <button onclick="lihatResitAdmin(${idx})" class="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Lihat</button>
@@ -739,6 +766,7 @@
             const amount = document.getElementById('inputRecordAmount').value;
             const date = document.getElementById('inputRecordDate').value; // YYYY-MM-DD
             const receipt = document.getElementById('inputRecordReceipt').value.trim();
+            const failInput = document.getElementById('inputRecordFile');
             
             const btnSubmit = this.querySelector('button[type="submit"]');
             const originalHTML = btnSubmit.innerHTML;
@@ -748,10 +776,16 @@
             try {
                 if(URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') throw new Error("Sila tetapkan URL Web App Apps Script anda.");
 
+                const fail = await bacaFail(failInput);
+                if (fail) btnSubmit.innerHTML = "Memuat naik resit...";
+
                 const response = await fetch(URL_APPSCRIPT_WEBAPP, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date, receipt: receipt })
+                    body: JSON.stringify(Object.assign(
+                        { action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date, receipt: receipt },
+                        fail || {}
+                    ))
                 });
 
                 const result = await response.json();
@@ -761,9 +795,10 @@
                     // Reset input
                     document.getElementById('inputRecordAmount').value = '';
                     document.getElementById('inputRecordReceipt').value = '';
+                    failInput.value = '';
 
                     // Update memory & re-render table
-                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date, RESIT: normalizePautanResit(receipt) });
+                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date, RESIT: result.link || '' });
                     
                     // Update Year Filter dropdown in case a new year was added
                     populateFilterDropdowns(); 
@@ -799,37 +834,66 @@
         }
 
         // ==========================================
-        // PAUTAN RESIT
+        // PAUTAN RESIT (imej + PDF)
         // ==========================================
         let rekodDipaparAdmin = [];
+        let editResitIdx = null;
+        const SAIZ_MAKS_BYTE = 8 * 1024 * 1024;
+        const MIME_DIBENARKAN = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
-        /** Tukar pautan Google Drive kepada pautan imej terus (lh3). */
-        function normalizePautanResit(nilai) {
+        /** Kenal pasti jenis resit: lh3 -> imej; pautan Drive lain / PDF -> pratonton iframe. */
+        function parseResit(nilai) {
             const teks = String(nilai == null ? '' : nilai).trim();
-            if (!teks) return '';
-            if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
+            if (!teks) return null;
 
-            const corak = [
-                /\/d\/([a-zA-Z0-9_-]{15,})/,
-                /[?&]id=([a-zA-Z0-9_-]{15,})/,
-                /^([a-zA-Z0-9_-]{25,})$/
-            ];
-            for (const c of corak) {
-                const padanan = teks.match(c);
-                if (padanan) return 'https://lh3.googleusercontent.com/d/' + padanan[1];
+            const lh3 = teks.match(/^https:\/\/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i);
+            if (lh3) return { tipe: 'img', src: teks };
+
+            const m = teks.match(/\/d\/([a-zA-Z0-9_-]{15,})/)
+                   || teks.match(/[?&]id=([a-zA-Z0-9_-]{15,})/)
+                   || teks.match(/^([a-zA-Z0-9_-]{25,})$/);
+            if (m) return { tipe: 'pdf', src: 'https://drive.google.com/file/d/' + m[1] + '/preview' };
+
+            if (/^https:\/\//i.test(teks)) {
+                return /\.pdf([?#]|$)/i.test(teks) ? { tipe: 'pdf', src: teks } : { tipe: 'img', src: teks };
             }
-            return /^https:\/\//i.test(teks) ? teks : '';
+            return null;
+        }
+
+        /** Baca fail pilihan sebagai base64 (tanpa awalan data:). Pulang null jika tiada fail. */
+        function bacaFail(inputEl) {
+            return new Promise((resolve, reject) => {
+                const fail = inputEl.files && inputEl.files[0];
+                if (!fail) return resolve(null);
+
+                if (MIME_DIBENARKAN.indexOf(fail.type) === -1) {
+                    return reject(new Error('Jenis fail tidak dibenarkan. Gunakan PDF, JPG atau PNG.'));
+                }
+                if (fail.size > SAIZ_MAKS_BYTE) {
+                    return reject(new Error('Saiz fail melebihi 8MB. Sila kecilkan fail dahulu.'));
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => resolve({
+                    fileBase64: String(reader.result).split(',')[1] || '',
+                    fileName: fail.name,
+                    fileMime: fail.type
+                });
+                reader.onerror = () => reject(new Error('Gagal membaca fail.'));
+                reader.readAsDataURL(fail);
+            });
         }
 
         function lihatResitAdmin(idx) {
             const r = rekodDipaparAdmin[idx];
             if (!r) return;
 
-            const pautan = normalizePautanResit(r.RESIT);
-            if (!pautan) return;
+            const resit = parseResit(r.RESIT);
+            if (!resit) return;
 
             const box   = document.getElementById('adminResitBox');
             const imej  = document.getElementById('adminResitImej');
+            const frame = document.getElementById('adminResitFrame');
             const ralat = document.getElementById('adminResitRalat');
 
             document.getElementById('adminResitTajuk').textContent =
@@ -837,13 +901,22 @@
 
             ralat.classList.add('hidden');
             ralat.classList.remove('flex');
-            imej.classList.remove('hidden');
-            imej.onerror = () => {
-                imej.classList.add('hidden');
-                ralat.classList.remove('hidden');
-                ralat.classList.add('flex');
-            };
-            imej.src = pautan;
+            imej.classList.add('hidden');
+            frame.classList.add('hidden');
+            imej.src = '';
+            frame.src = 'about:blank';
+
+            if (resit.tipe === 'pdf') {
+                frame.classList.remove('hidden');
+                frame.src = resit.src;
+            } else {
+                imej.onload = () => imej.classList.remove('hidden');
+                imej.onerror = () => {
+                    ralat.classList.remove('hidden');
+                    ralat.classList.add('flex');
+                };
+                imej.src = resit.src;
+            }
 
             box.classList.remove('hidden');
             box.classList.add('flex');
@@ -854,36 +927,69 @@
             box.classList.add('hidden');
             box.classList.remove('flex');
             document.getElementById('adminResitImej').src = '';
+            document.getElementById('adminResitFrame').src = 'about:blank';
         }
 
-        async function editResitAdmin(idx) {
+        function editResitAdmin(idx) {
             const r = rekodDipaparAdmin[idx];
             if (!r) return;
 
-            const sedia = String(r.RESIT || '').trim();
-            const pautanBaru = prompt(
-                `Pautan resit untuk ${selectedPayerId} (Tahun ${r.TAHUN}).\n\n` +
-                'Tampal link perkongsian Google Drive. Biarkan kosong untuk membuang pautan.',
-                sedia
-            );
-            if (pautanBaru === null) return; // batal
+            editResitIdx = idx;
+            document.getElementById('editResitInfo').textContent =
+                `${selectedPayerId} · Tahun ${r.TAHUN} · ${formatCurrency(parseFloat(r.JUMLAH) || 0)}`;
+            document.getElementById('editResitLink').value = r.RESIT || '';
+            document.getElementById('editResitFile').value = '';
+
+            const m = document.getElementById('editResitModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function tutupEditResit() {
+            const m = document.getElementById('editResitModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            editResitIdx = null;
+        }
+
+        async function simpanEditResit() {
+            const r = rekodDipaparAdmin[editResitIdx];
+            if (!r) return;
+
+            const link = document.getElementById('editResitLink').value.trim();
+            const failInput = document.getElementById('editResitFile');
+            const btn = document.getElementById('editResitSimpan');
+            const teksAsal = btn.textContent;
+
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+            btn.textContent = 'Menyimpan...';
 
             try {
-                const result = await panggilApi({
+                const fail = await bacaFail(failInput);
+
+                if (!fail && !link && r.RESIT && !confirm('Resit akan dibuang daripada rekod ini. Teruskan?')) {
+                    return;
+                }
+
+                const result = await panggilApi(Object.assign({
                     action: 'updateResit',
                     id: selectedPayerId,
                     year: r.TAHUN,
                     date: r.TARIKH_BAYAR || '',
-                    receipt: pautanBaru.trim()
-                });
+                    receipt: link
+                }, fail || {}));
 
-                // Kemaskini memori setempat
-                r.RESIT = normalizePautanResit(pautanBaru.trim());
+                r.RESIT = result.link || '';
+                tutupEditResit();
                 renderManageHistory();
-
                 showModal('Berjaya', result.message, 'success');
             } catch (error) {
                 showModal('Gagal Dikemaskini', error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+                btn.textContent = teksAsal;
             }
         }
 
@@ -928,9 +1034,9 @@
         });
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !document.getElementById('adminResitBox').classList.contains('hidden')) {
-                tutupResitAdmin();
-            }
+            if (e.key !== 'Escape') return;
+            if (!document.getElementById('adminResitBox').classList.contains('hidden')) tutupResitAdmin();
+            else if (!document.getElementById('editResitModal').classList.contains('hidden')) tutupEditResit();
         });
 
         window.onload = initializeDashboard;

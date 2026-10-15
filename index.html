@@ -479,7 +479,8 @@
                     <p class="text-sm text-slate-500 font-medium leading-relaxed">Fail mungkin telah dialih atau tetapan perkongsiannya berubah. Sila rujuk Hotline <span class="font-bold text-teal-700">011-55335082</span>.</p>
                 </div>
 
-                <img id="resitImej" src="" alt="Resit zakat" class="max-w-full max-h-[70vh] object-contain" />
+                <img id="resitImej" src="" alt="Resit zakat" class="hidden max-w-full max-h-[70vh] object-contain" />
+                <iframe id="resitFrame" title="Resit zakat" src="about:blank" class="hidden w-full h-[70vh] bg-white border-0"></iframe>
             </div>
 
             <!-- Butang Muat Turun -->
@@ -812,7 +813,7 @@
             } else {
                 rekodDipapar = userRecords; // rujukan untuk butang resit
                 userRecords.forEach((r, idx) => {
-                    const pautanResit = normalizePautanResit(r.RESIT);
+                    const pautanResit = parseResit(r.RESIT);
                     const butangResit = pautanResit
                         ? `<button type="button" onclick="openResitDariIndex(${idx})" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors" title="Lihat resit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
@@ -851,49 +852,61 @@
         });
 
         // ==========================================
-        // LIGHTBOX RESIT ZAKAT
+        // LIGHTBOX RESIT ZAKAT (imej + PDF)
         // ==========================================
-        let resitAktif = { url: '', nama: 'resit-zakat.jpg' };
+        let resitAktif = null;
 
         /**
-         * Tukar pelbagai bentuk pautan Google Drive kepada pautan imej terus
-         * (lh3.googleusercontent.com) supaya boleh dipaparkan dalam popup.
-         * Pautan imej https biasa dikekalkan seadanya.
+         * Kenal pasti jenis & pautan paparan resit.
+         *  - lh3.googleusercontent.com/d/ID  -> imej (<img>)
+         *  - pautan Google Drive lain / PDF   -> pratonton Drive (<iframe>)
+         *  - URL https biasa                  -> imej, atau PDF jika berakhir .pdf
          */
-        function normalizePautanResit(nilai) {
+        function parseResit(nilai) {
             const teks = String(nilai == null ? '' : nilai).trim();
-            if (!teks) return '';
-            if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
+            if (!teks) return null;
 
-            const corak = [
-                /\/d\/([a-zA-Z0-9_-]{15,})/,     // /file/d/FILEID/ atau /d/FILEID
-                /[?&]id=([a-zA-Z0-9_-]{15,})/,   // ?id=FILEID
-                /^([a-zA-Z0-9_-]{25,})$/         // FILEID sahaja
-            ];
-            for (const c of corak) {
-                const padanan = teks.match(c);
-                if (padanan) return 'https://lh3.googleusercontent.com/d/' + padanan[1];
+            const lh3 = teks.match(/^https:\/\/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i);
+            if (lh3) return { tipe: 'img', src: teks, id: lh3[1] };
+
+            const m = teks.match(/\/d\/([a-zA-Z0-9_-]{15,})/)
+                   || teks.match(/[?&]id=([a-zA-Z0-9_-]{15,})/)
+                   || teks.match(/^([a-zA-Z0-9_-]{25,})$/);
+            if (m) {
+                return {
+                    tipe: 'pdf',
+                    id: m[1],
+                    src: 'https://drive.google.com/file/d/' + m[1] + '/preview',
+                    download: 'https://drive.google.com/uc?export=download&id=' + m[1]
+                };
             }
 
-            return /^https:\/\//i.test(teks) ? teks : '';
+            if (/^https:\/\//i.test(teks)) {
+                return /\.pdf([?#]|$)/i.test(teks)
+                    ? { tipe: 'pdf', src: teks, download: teks }
+                    : { tipe: 'img', src: teks };
+            }
+            return null;
         }
 
         function openResitDariIndex(idx) {
             const r = rekodDipapar[idx];
             if (!r) return;
             const tajuk = `Tahun ${r.TAHUN} · ${formatCurrency(parseFloat(r.JUMLAH) || 0)}`;
-            const namaFail = `resit-zakat-${activePayerId || 'muzakki'}-${r.TAHUN}.jpg`;
-            openResit(r.RESIT, tajuk, namaFail);
+            const namaAsas = `resit-zakat-${activePayerId || 'muzakki'}-${r.TAHUN}`;
+            openResit(r.RESIT, tajuk, namaAsas);
         }
 
-        function openResit(url, tajuk, namaFail) {
-            const pautan = normalizePautanResit(url);
-            if (!pautan) return;
+        function openResit(nilai, tajuk, namaAsas) {
+            const resit = parseResit(nilai);
+            if (!resit) return;
 
-            resitAktif = { url: pautan, nama: namaFail || 'resit-zakat.jpg' };
+            const ext = resit.tipe === 'pdf' ? 'pdf' : 'jpg';
+            resitAktif = Object.assign({ nama: (namaAsas || 'resit-zakat') + '.' + ext }, resit);
 
             const box    = document.getElementById('resitLightbox');
             const imej   = document.getElementById('resitImej');
+            const frame  = document.getElementById('resitFrame');
             const loader = document.getElementById('resitLoader');
             const ralat  = document.getElementById('resitRalat');
             const btn    = document.getElementById('resitDownloadBtn');
@@ -904,21 +917,34 @@
             loader.classList.remove('hidden');
             ralat.classList.add('hidden');
             ralat.classList.remove('flex');
-            imej.classList.remove('hidden');
+            imej.classList.add('hidden');
+            frame.classList.add('hidden');
             imej.src = '';
+            frame.src = 'about:blank';
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
 
-            imej.onload = () => loader.classList.add('hidden');
-            imej.onerror = () => {
-                loader.classList.add('hidden');
-                imej.classList.add('hidden');
-                ralat.classList.remove('hidden');
-                ralat.classList.add('flex');
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-            };
-            imej.src = pautan;
+            if (resit.tipe === 'pdf') {
+                frame.onload = () => {
+                    if (frame.getAttribute('src') === 'about:blank') return;
+                    loader.classList.add('hidden');
+                    frame.classList.remove('hidden');
+                };
+                frame.src = resit.src;
+            } else {
+                imej.onload = () => {
+                    loader.classList.add('hidden');
+                    imej.classList.remove('hidden');
+                };
+                imej.onerror = () => {
+                    loader.classList.add('hidden');
+                    ralat.classList.remove('hidden');
+                    ralat.classList.add('flex');
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                };
+                imej.src = resit.src;
+            }
 
             box.classList.remove('hidden');
             box.classList.add('flex');
@@ -930,16 +956,28 @@
             box.classList.add('hidden');
             box.classList.remove('flex');
             document.getElementById('resitImej').src = '';
+            document.getElementById('resitFrame').src = 'about:blank';
             document.body.style.overflow = '';
+            resitAktif = null;
         }
 
         /**
          * Muat turun resit tanpa membuka tab baharu.
-         * Cuba ambil sebagai blob dahulu; jika disekat CORS, guna anchor
-         * dengan atribut download sebagai sandaran.
+         *  - PDF : iframe tersembunyi ke pautan muat turun Drive
+         *          (Drive balas sebagai lampiran, halaman ini tidak berubah).
+         *  - Imej: ambil sebagai blob; sandaran anchor jika disekat CORS.
          */
         async function downloadResit() {
-            if (!resitAktif.url) return;
+            if (!resitAktif) return;
+
+            if (resitAktif.tipe === 'pdf') {
+                const f = document.createElement('iframe');
+                f.style.display = 'none';
+                f.src = resitAktif.download;
+                document.body.appendChild(f);
+                setTimeout(() => f.remove(), 60000);
+                return;
+            }
 
             const btn = document.getElementById('resitDownloadBtn');
             const teksAsal = btn.innerHTML;
@@ -947,7 +985,7 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(resitAktif.url, { mode: 'cors' });
+                const response = await fetch(resitAktif.src, { mode: 'cors' });
                 if (!response.ok) throw new Error('Gagal mengambil fail.');
 
                 const blob = await response.blob();
@@ -962,9 +1000,8 @@
 
                 setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
             } catch (err) {
-                // Sandaran: biar pelayar uruskan muat turun secara terus
                 const a = document.createElement('a');
-                a.href = resitAktif.url;
+                a.href = resitAktif.src;
                 a.download = resitAktif.nama;
                 a.rel = 'noopener';
                 document.body.appendChild(a);

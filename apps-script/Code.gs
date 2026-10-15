@@ -21,7 +21,13 @@
  *
  * STRUKTUR TAB PAYMENT_RECORDS (WAJIB):
  *   A = ID | B = TAHUN | C = JUMLAH | D = TARIKH_BAYAR | E = RESIT
- *   Lajur E menyimpan pautan imej resit (Google Drive / lh3).
+ *   Lajur E menyimpan pautan resit:
+ *     - Imej (JPG/PNG) : https://lh3.googleusercontent.com/d/FILEID
+ *     - PDF            : https://drive.google.com/file/d/FILEID/preview
+ *
+ * KEBENARAN DRIVE:
+ *   Skrip ini guna DriveApp (simpan fail ke folder resit). Selepas tampal
+ *   kod baharu, jalankan fungsi ujiAkses() sekali dan beri kebenaran.
  * =====================================================================
  */
 
@@ -29,6 +35,11 @@
 var GID_PAYER_LIST      = 1211671427;  // Tab senarai Muzakki (ID | STATUS)
 var GID_PAYMENT_RECORDS = 1163321599;  // Tab rekod pembayaran
 var HOTLINE             = '011-55335082';
+
+// Folder Google Drive tempat fail resit disimpan
+var FOLDER_RESIT_ID     = '11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B';
+var SAIZ_MAKS_BYTE      = 8 * 1024 * 1024; // 8MB
+var MIME_DIBENARKAN     = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 // Bilangan lajur pada PAYMENT_RECORDS (termasuk RESIT)
 var LAJUR_RESIT = 5; // Lajur E
@@ -118,7 +129,10 @@ function addRecord(ss, payload) {
   if (!sheet) throw new Error('Tab PAYMENT_RECORDS tidak dijumpai!');
 
   var rekod = sahkanRekod(ss, payload);
-  var resit = normalizePautanResit(payload.receipt);
+
+  // Fail yang dimuat naik diutamakan; jika tiada, guna pautan yang ditampal
+  var resit = simpanFailResit(payload, rekod.id, rekod.tahun) ||
+              normalizePautanResit(payload.receipt);
 
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -130,7 +144,8 @@ function addRecord(ss, payload) {
 
     return respon('success',
       'Rekod ' + rekod.id + ' (Tahun ' + rekod.tahun + ') berjaya ditambah' +
-      (resit ? ' berserta pautan resit.' : ' tanpa pautan resit.'));
+      (resit ? ' berserta resit.' : ' tanpa resit.'),
+      { link: resit });
   } finally {
     lock.releaseLock();
   }
@@ -140,9 +155,10 @@ function addRecord(ss, payload) {
 /* =====================================================================
  * ARAHAN 3: KEMASKINI / BUANG PAUTAN RESIT PADA REKOD SEDIA ADA
  * ---------------------------------------------------------------------
- * payload: { id, year, date, receipt }
+ * payload: { id, year, date, receipt, fileBase64?, fileName?, fileMime? }
  * Padanan rekod guna ID + TAHUN + TARIKH_BAYAR.
- * Hantar `receipt` kosong untuk membuang pautan.
+ * Fail yang dimuat naik diutamakan. Jika tiada fail dan `receipt`
+ * kosong, pautan dibuang.
  * ===================================================================== */
 function updateResit(ss, payload) {
   var sheet = getSheetById(ss, GID_PAYMENT_RECORDS);
@@ -151,10 +167,12 @@ function updateResit(ss, payload) {
   var id     = normalizeId(payload.id);
   var tahun  = String(payload.year || '').trim();
   var tarikh = String(payload.date || '').trim();
-  var resit  = normalizePautanResit(payload.receipt);
 
   if (!id)    throw new Error('ID Muzakki wajib diisi.');
   if (!tahun) throw new Error('Tahun rekod wajib diisi.');
+
+  var resit = simpanFailResit(payload, id, tahun) ||
+              normalizePautanResit(payload.receipt);
 
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -170,8 +188,8 @@ function updateResit(ss, payload) {
       if (samaId && samaTahun && samaTarikh) {
         sheet.getRange(i + 1, LAJUR_RESIT).setValue(resit);
         return respon('success', resit
-          ? 'Pautan resit berjaya dikemaskini.'
-          : 'Pautan resit berjaya dibuang.');
+          ? 'Resit berjaya dikemaskini.'
+          : 'Resit berjaya dibuang.', { link: resit });
       }
     }
     throw new Error('Rekod ' + id + ' (Tahun ' + tahun + ') tidak dijumpai.');
@@ -220,34 +238,97 @@ function sahkanRekod(ss, payload) {
 }
 
 /**
- * Tukar pelbagai bentuk pautan Google Drive kepada pautan imej terus
- * (lh3.googleusercontent.com) supaya resit boleh dipaparkan dalam popup.
+ * Seragamkan pautan resit.
  *
- * Diterima:
- *   https://drive.google.com/file/d/FILEID/view?usp=sharing
- *   https://drive.google.com/open?id=FILEID
- *   https://drive.google.com/uc?export=view&id=FILEID
- *   https://docs.google.com/.../d/FILEID/...
- *   https://lh3.googleusercontent.com/d/FILEID   (dikekalkan)
- *   FILEID sahaja
+ * Pautan Google Drive (pelbagai format) ditukar kepada:
+ *   - imej (JPG/PNG/WEBP) : https://lh3.googleusercontent.com/d/FILEID
+ *   - PDF / lain-lain     : https://drive.google.com/file/d/FILEID/preview
+ * Jenis fail dikesan melalui Drive. Jika fail tidak dapat dicapai oleh
+ * skrip, pautan preview digunakan (berfungsi untuk imej dan PDF).
  *
- * Pautan imej biasa (https://... .jpg/.png) dikekalkan seadanya.
+ * Pautan lh3 / preview sedia ada dikekalkan. URL https lain dikekalkan.
  */
 function normalizePautanResit(nilai) {
   var teks = String(nilai == null ? '' : nilai).trim();
   if (!teks) return '';
   if (teks.length > 500) throw new Error('Pautan resit terlalu panjang.');
 
-  // Sudah dalam bentuk lh3 — kekalkan
   if (/^https:\/\/lh3\.googleusercontent\.com\//i.test(teks)) return teks;
+  if (/^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/preview/i.test(teks)) return teks;
 
   var fileId = ekstrakFileId(teks);
-  if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
+  if (fileId) return pautanDariFileId(fileId);
 
-  // Pautan https lain (cth: imej di hosting sendiri) — kekalkan
   if (/^https:\/\//i.test(teks)) return teks;
 
-  throw new Error('Pautan resit tidak sah. Gunakan pautan perkongsian Google Drive atau URL imej https.');
+  throw new Error('Pautan resit tidak sah. Gunakan pautan perkongsian Google Drive atau URL https.');
+}
+
+/** Bina pautan paparan ikut jenis fail: imej -> lh3, selain itu -> preview. */
+function pautanDariFileId(fileId) {
+  var mime = '';
+  try {
+    mime = String(DriveApp.getFileById(fileId).getMimeType() || '');
+  } catch (e) {
+    // Fail tidak dapat dicapai skrip — guna preview (sah untuk imej & PDF)
+  }
+  if (/^image\//i.test(mime)) {
+    return 'https://lh3.googleusercontent.com/d/' + fileId;
+  }
+  return 'https://drive.google.com/file/d/' + fileId + '/preview';
+}
+
+/**
+ * Simpan fail resit yang dimuat naik admin ke folder Drive, kongsi sebagai
+ * "Anyone with the link", dan pulangkan pautan paparan.
+ * Pulang '' jika tiada fail dihantar.
+ */
+function simpanFailResit(payload, id, tahun) {
+  if (!payload.fileBase64) return '';
+
+  var mime = String(payload.fileMime || '').toLowerCase();
+  if (MIME_DIBENARKAN.indexOf(mime) === -1) {
+    throw new Error('Jenis fail tidak dibenarkan. Gunakan PDF, JPG atau PNG.');
+  }
+
+  var bytes;
+  try {
+    bytes = Utilities.base64Decode(String(payload.fileBase64));
+  } catch (e) {
+    throw new Error('Fail rosak atau tidak dapat dibaca.');
+  }
+  if (bytes.length > SAIZ_MAKS_BYTE) {
+    throw new Error('Saiz fail melebihi had ' + (SAIZ_MAKS_BYTE / 1024 / 1024) + 'MB.');
+  }
+
+  var ext = mime === 'application/pdf' ? 'pdf'
+          : mime === 'image/png'       ? 'png'
+          : mime === 'image/webp'      ? 'webp' : 'jpg';
+  var cap = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'yyyyMMdd-HHmmss');
+  var nama = 'RESIT_' + id + '_' + tahun + '_' + cap + '.' + ext;
+
+  var folder;
+  try {
+    folder = DriveApp.getFolderById(FOLDER_RESIT_ID);
+  } catch (e) {
+    throw new Error('Folder resit tidak dapat dicapai. Semak FOLDER_RESIT_ID dan kebenaran akaun.');
+  }
+
+  var fail = folder.createFile(Utilities.newBlob(bytes, mime, nama));
+  try {
+    fail.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) {
+    throw new Error('Fail disimpan tetapi gagal dikongsi (' + nama + '). ' +
+      'Dasar Google Workspace mungkin menyekat perkongsian luar.');
+  }
+
+  return pautanDariFileId(fail.getId());
+}
+
+/** Jalankan sekali dari editor untuk beri kebenaran Drive & semak folder. */
+function ujiAkses() {
+  var folder = DriveApp.getFolderById(FOLDER_RESIT_ID);
+  Logger.log('Folder OK: ' + folder.getName());
 }
 
 /** Cari FILE ID daripada pelbagai format pautan Google Drive. */
@@ -307,9 +388,10 @@ function formatTarikhSahaja(nilai) {
   return String(nilai).trim();
 }
 
-/** Respon JSON standard kepada HTML. */
-function respon(status, message) {
+/** Respon JSON standard kepada HTML. `tambahan` digabung ke dalam respon. */
+function respon(status, message, tambahan) {
   var result = { status: status, message: message };
+  if (tambahan) for (var k in tambahan) result[k] = tambahan[k];
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
 }
