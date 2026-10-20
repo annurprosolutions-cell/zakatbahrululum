@@ -74,6 +74,9 @@
         
         <!-- Hero Section (Takaful Green Theme) -->
         <div class="relative bg-teal-800 pb-12 pt-10 px-6 rounded-b-[2.5rem] shadow-xl overflow-hidden">
+            <!-- Gambar hero (diurus melalui CMS; kosong = tema hijau asal) -->
+            <div id="heroBg" class="absolute inset-0 hidden"></div>
+            <div id="heroOverlay" class="absolute inset-0 hidden bg-gradient-to-b from-teal-900/55 via-teal-900/65 to-teal-900/90"></div>
             <!-- Background Pattern/Image Overlay -->
             <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
             
@@ -90,10 +93,10 @@
                 <div>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-900/60 border border-teal-600/50 rounded-full text-xs font-bold text-emerald-300 uppercase tracking-widest mb-3 shadow-inner">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-                        e-Muzakki Bahrul Ulum
+                        <span id="heroLencana">e-Muzakki Bahrul Ulum</span>
                     </span>
-                    <h1 class="text-3xl font-extrabold text-white mb-2">Selamat Datang,</h1>
-                    <p class="text-teal-100/90 text-sm md:text-base font-medium">Urus dan semak rekod zakat anda dengan mudah dan selamat.</p>
+                    <h1 id="heroTajuk" class="text-3xl font-extrabold text-white mb-2">Selamat Datang,</h1>
+                    <p id="heroSubtajuk" class="text-teal-100/90 text-sm md:text-base font-medium">Urus dan semak rekod zakat anda dengan mudah dan selamat.</p>
                 </div>
 
                 <!-- Floating Card: Jom Zakat Hari Ini -->
@@ -105,7 +108,7 @@
                         </p>
                         <p class="text-white font-bold text-xl">Jom Zakat Hari Ini</p>
                     </div>
-                    <a href="https://bahrululum.edu.my/page/pagedetail.php?schid=579&schname=ZAKAT" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-teal-950 px-5 py-3 rounded-full text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
+                    <a id="linkBayar" href="https://bahrululum.edu.my/page/pagedetail.php?schid=579&schname=ZAKAT" target="_blank" rel="noopener" class="bg-emerald-500 hover:bg-emerald-400 text-teal-950 px-5 py-3 rounded-full text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
                         Bayar 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                     </a>
@@ -121,7 +124,7 @@
                     MAKLUMAN
                 </div>
                 <div class="flex-1 overflow-hidden relative h-9 flex items-center bg-teal-50/50">
-                    <div class="animate-ticker text-teal-800 text-sm font-medium inline-block w-full">
+                    <div id="tickerTeks" class="animate-ticker text-teal-800 text-sm font-medium inline-block w-full">
                         🌟 Tunaikan zakat anda untuk menyucikan harta dan jiwa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 📢 Peringatan: Bayar zakat sebelum 31 Disember untuk kelayakan rebat cukai pendapatan tahun semasa. &nbsp;&nbsp;&bull;&nbsp;&nbsp; 🕌 Kempen Zakat Bahrul Ulum kini berlangsung. Ayuh menyumbang!
                     </div>
                 </div>
@@ -206,11 +209,11 @@
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-baseline gap-1.5">
-                                <span class="text-2xl font-black text-indigo-900 leading-none">60</span>
+                                <span id="impakGuru" class="text-2xl font-black text-indigo-900 leading-none">60</span>
                                 <span class="text-sm font-bold text-indigo-900 leading-none">orang guru</span>
                             </div>
-                            <p class="text-xs font-bold text-indigo-700/80 leading-snug mt-1.5">Pembayaran gaji guru</p>
-                            <span class="inline-block mt-2 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded uppercase tracking-wide">Asnaf Fisabilillah</span>
+                            <p id="impakGuruKet" class="text-xs font-bold text-indigo-700/80 leading-snug mt-1.5">Pembayaran gaji guru</p>
+                            <span class="inline-block mt-2 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded uppercase tracking-wide" id="impakGuruAsnaf">Asnaf Fisabilillah</span>
                         </div>
                     </div>
                 </div>
@@ -231,7 +234,7 @@
                             <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             </div>
-                            <span class="text-xl font-black text-blue-900 leading-none mb-1">&plusmn;650</span>
+                            <span id="impakMurid" class="text-xl font-black text-blue-900 leading-none mb-1">&plusmn;650</span>
                             <span class="text-xs font-bold text-blue-700/80 leading-tight">Murid Menerima Manfaat</span>
                         </div>
 
@@ -240,7 +243,7 @@
                             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-2 shadow-inner">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                             </div>
-                            <span class="text-[11px] font-bold text-amber-800/80 uppercase leading-tight mt-1 tracking-wide">Program Pendidikan &amp; Kebajikan</span>
+                            <span id="impakProgram" class="text-[11px] font-bold text-amber-800/80 uppercase leading-tight mt-1 tracking-wide">Program Pendidikan &amp; Kebajikan</span>
                         </div>
 
                         <!-- Penyelenggaraan Fasiliti -->
@@ -248,7 +251,7 @@
                             <div class="w-12 h-12 shrink-0 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-inner">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
                             </div>
-                            <span class="text-[11px] font-bold text-emerald-800/80 uppercase leading-tight tracking-wide text-left">Penyelenggaraan Fasiliti Sekolah</span>
+                            <span id="impakFasiliti" class="text-[11px] font-bold text-emerald-800/80 uppercase leading-tight tracking-wide text-left">Penyelenggaraan Fasiliti Sekolah</span>
                         </div>
                     </div>
                 </div>
@@ -502,7 +505,7 @@
             <div>
                 <p class="text-[10px] font-black text-teal-700 uppercase tracking-widest mb-1">Penafian Rekod</p>
                 <p class="text-xs text-slate-600 font-medium leading-relaxed">
-                    Sila rujuk Hotline Zakat Bahrul Ulum (<a href="tel:+601155335082" class="font-bold text-teal-700 hover:text-teal-900 underline decoration-teal-300">011-55335082</a>) jika berlaku percanggahan rekod.
+                    Sila rujuk Hotline Zakat Bahrul Ulum (<a id="disclaimerHotline" href="tel:+601155335082" class="font-bold text-teal-700 hover:text-teal-900 underline decoration-teal-300">011-55335082</a>) jika berlaku percanggahan rekod.
                 </p>
             </div>
         </div>
@@ -526,23 +529,21 @@
     </div>
 
     <script>
-        // Google Sheets URLs
-        const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn9DTv_2Un2dhds3AjeaSVblmudPDnILe2trAxtkWV0--av2BvlQWyCDub1rk2u4HpIQsv-92xg8Al/pub';
-        const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
-        const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
+        // Pangkalan data diakses melalui Google Apps Script sahaja (Sheet tidak diterbitkan ke web)
+        const URL_APPSCRIPT_WEBAPP = 'https://script.google.com/macros/s/AKfycbwnN4vBHvKfgGfIa8bBxGySYuKi1TuNXTBqJq2uuBJx-GJtIUZ9w3bNkKxaoG7bUUiD/exec';
 
         // Hotline rujukan percanggahan rekod
         const HOTLINE_ZAKAT = '011-55335082';
 
         // Global State (Cached Data)
-        let globalPayers = [];
-        let globalRecords = [];
+        let statsData = null;      // { totalPayers, perTahun } dari Apps Script
         let chartInstance = null;
+        let heroTimer = null;
         let activePayerId = null;  // ID Muzakki yang sedang dipaparkan
         let rekodDipapar = [];     // rekod yang sedang dipapar pada senarai
 
         // Sasaran Kutipan Tahunan
-        const TARGET_KUTIPAN = 100000;
+        let TARGET_KUTIPAN = 100000; // boleh ditukar melalui CMS (content/site.json)
 
         // PWA Setup (Auto Manifest for "Add to Homescreen")
         const setupPWA = () => {
@@ -561,52 +562,32 @@
         };
         setupPWA();
 
-        // CSV Parser
-        function parseCSV(str) {
-            const arr = [];
-            let quote = false;
-            let row = 0, col = 0, c = 0;
-            for (row = col = c = 0; c < str.length; c++) {
-                let cc = str[c], nc = str[c+1];
-                arr[row] = arr[row] || [];
-                arr[row][col] = arr[row][col] || '';
-                if (cc === '"' && quote && nc === '"') { arr[row][col] += cc; ++c; continue; }
-                if (cc === '"') { quote = !quote; continue; }
-                if (cc === ',' && !quote) { ++col; continue; }
-                if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
-                if (cc === '\n' && !quote) { ++row; col = 0; continue; }
-                if (cc === '\r' && !quote) { ++row; col = 0; continue; }
-                arr[row][col] += cc;
-            }
-            if (arr.length === 0) return [];
-            const headers = arr[0].map(h => h.trim());
-            const data = [];
-            for (let i = 1; i < arr.length; i++) {
-                if (arr[i].length === 1 && arr[i][0] === "") continue;
-                let obj = {};
-                for (let j = 0; j < headers.length; j++) { obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : ''; }
-                data.push(obj);
-            }
-            return data;
-        }
-
         function formatCurrency(amount) {
             return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(amount);
         }
 
-        // Initialize App (Fetch Data Once on Load)
+        // Panggilan GET awam ke Apps Script
+        async function panggilAwam(params) {
+            const res = await fetch(URL_APPSCRIPT_WEBAPP + '?' + new URLSearchParams(params).toString());
+            if (!res.ok) throw new Error('Gagal menghubungi pelayan.');
+            return res.json();
+        }
+
+        // Initialize App (statistik agregat + kandungan CMS)
         async function initApp() {
             try {
                 if (!navigator.onLine) throw new Error("Tiada sambungan internet.");
 
-                const [payerRes, recordsRes] = await Promise.all([ fetch(URL_PAYER_LIST), fetch(URL_PAYMENT_RECORDS) ]);
-                if (!payerRes.ok || !recordsRes.ok) throw new Error("Gagal muat turun pangkalan data.");
+                const [stats, kandungan] = await Promise.all([
+                    panggilAwam({ action: 'stats' }),
+                    ambilKandungan()
+                ]);
+                if (stats.status !== 'success') throw new Error(stats.message || 'Gagal memuat turun data.');
 
-                globalPayers = parseCSV(await payerRes.text());
-                globalRecords = parseCSV(await recordsRes.text());
-
+                statsData = stats;
+                if (kandungan) applyKandungan(kandungan);
                 processDashboardStats();
-                
+
                 // Hide Loader smoothly
                 const loader = document.getElementById('globalLoader');
                 loader.style.opacity = '0';
@@ -618,26 +599,115 @@
             }
         }
 
+        // ==========================================
+        // KANDUNGAN CMS (content/site.json, diurus melalui Sveltia CMS)
+        // Jika fail tiada / gagal dimuat, kandungan asal dalam HTML kekal.
+        // ==========================================
+        async function ambilKandungan() {
+            try {
+                const res = await fetch('content/site.json', { cache: 'no-cache' });
+                if (!res.ok) return null;
+                return await res.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Laluan imej yang selamat: https:// atau laluan relatif (skema lain ditolak)
+        function laluanImejSelamat(nilai) {
+            const t = String(nilai == null ? '' : nilai).trim();
+            if (!t) return '';
+            if (/^https:\/\//i.test(t)) return t;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(t) || t.startsWith('//')) return '';
+            return t.replace(/^\/+/, '');
+        }
+
+        function setTeks(id, nilai) {
+            const el = document.getElementById(id);
+            const t = nilai == null ? '' : String(nilai).trim();
+            if (el && t) el.textContent = t;
+        }
+
+        function paparHero(senarai) {
+            const bg = document.getElementById('heroBg');
+            const ov = document.getElementById('heroOverlay');
+            const imej = (Array.isArray(senarai) ? senarai : []).map(laluanImejSelamat).filter(Boolean);
+
+            clearInterval(heroTimer);
+            bg.innerHTML = '';
+            if (!imej.length) {
+                bg.classList.add('hidden');
+                ov.classList.add('hidden');
+                return;
+            }
+
+            imej.forEach((src, i) => {
+                const im = document.createElement('img');
+                im.src = src;
+                im.alt = '';
+                im.loading = i === 0 ? 'eager' : 'lazy';
+                im.className = 'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + (i === 0 ? 'opacity-100' : 'opacity-0');
+                im.onerror = () => { im.style.display = 'none'; };
+                bg.appendChild(im);
+            });
+            bg.classList.remove('hidden');
+            ov.classList.remove('hidden');
+
+            if (imej.length > 1) {
+                let i = 0;
+                heroTimer = setInterval(() => {
+                    const els = bg.children;
+                    els[i].classList.replace('opacity-100', 'opacity-0');
+                    i = (i + 1) % els.length;
+                    els[i].classList.replace('opacity-0', 'opacity-100');
+                }, 5000);
+            }
+        }
+
+        function applyKandungan(c) {
+            const h = c.hero || {};
+            setTeks('heroLencana', h.lencana);
+            setTeks('heroTajuk', h.tajuk);
+            setTeks('heroSubtajuk', h.subtajuk);
+            paparHero(h.gambar);
+
+            if (Array.isArray(c.makluman) && c.makluman.length) {
+                const teks = c.makluman.map(m => String(m).trim()).filter(Boolean).join('  •  ');
+                setTeks('tickerTeks', teks);
+            }
+
+            // Pautan bayar: hanya https
+            const bayar = String(c.pautan_bayar || '').trim();
+            if (/^https:\/\//i.test(bayar)) document.getElementById('linkBayar').href = bayar;
+
+            const sasaran = Number(c.sasaran_kutipan);
+            if (sasaran > 0) TARGET_KUTIPAN = sasaran;
+
+            const i = c.impak || {};
+            setTeks('impakGuru', i.bilangan_guru);
+            setTeks('impakGuruKet', i.keterangan_guru);
+            setTeks('impakGuruAsnaf', i.asnaf_guru);
+            setTeks('impakMurid', i.bilangan_murid);
+            setTeks('impakProgram', i.program);
+            setTeks('impakFasiliti', i.fasiliti);
+
+            const hotline = String((c.penafian || {}).hotline || '').trim();
+            if (/^[0-9+\-\s]{7,20}$/.test(hotline)) {
+                const a = document.getElementById('disclaimerHotline');
+                a.textContent = hotline;
+                a.href = 'tel:' + hotline.replace(/[^0-9+]/g, '').replace(/^0/, '+60');
+            }
+        }
+
         // Dashboard Logic
         function processDashboardStats() {
             const currentYear = new Date().getFullYear().toString(); // e.g. "2026"
-            let totalCurrentYear = 0;
-            const yearlyData = {};
-
-            globalRecords.forEach(r => {
-                const amount = parseFloat(r.JUMLAH) || 0;
-                const year = (r.TAHUN || '').trim();
-                if(!year) return;
-
-                if (year === currentYear) totalCurrentYear += amount;
-
-                if (!yearlyData[year]) yearlyData[year] = 0;
-                yearlyData[year] += amount;
-            });
+            const yearlyData = (statsData && statsData.perTahun) || {};
+            const totalCurrentYear = yearlyData[currentYear] || 0;
 
             // Update DOM Total Payers
-            document.getElementById('statTotalPayers').textContent = globalPayers.length;
-            
+            document.getElementById('statTotalPayers').textContent = (statsData && statsData.totalPayers) || 0;
+
             // --- Logik Progress Sasaran Zakat ---
             document.getElementById('labelTahunSasaran').textContent = currentYear;
             document.getElementById('statSasaran').textContent = formatCurrency(TARGET_KUTIPAN);
@@ -751,7 +821,7 @@
         }
 
         // Fast Local Search Logic
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const queryId = document.getElementById('searchInput').value.trim().toUpperCase();
             if (!queryId) return;
@@ -763,15 +833,37 @@
             errCon.classList.add('hidden');
             resCon.classList.add('hidden');
 
-            const foundPayer = globalPayers.find(p => p.ID && p.ID.toUpperCase() === queryId);
-            if (!foundPayer) {
+            const btn = document.getElementById('searchBtn');
+            const teksBtn = btn.innerHTML;
+            btn.innerHTML = 'Mencari...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            let foundPayer, userRecords;
+            try {
+                const hasil = await panggilAwam({ action: 'lookup', id: queryId });
+
+                if (hasil.status === 'notfound') {
+                    activePayerId = null;
+                    errTxt.textContent = hasil.message || `ID '${queryId}' tidak dijumpai dalam rekod.`;
+                    errCon.classList.remove('hidden');
+                    return;
+                }
+                if (hasil.status !== 'success') throw new Error(hasil.message || 'Carian gagal.');
+
+                foundPayer = hasil.payer;
+                userRecords = hasil.records || [];
+            } catch (err) {
                 activePayerId = null;
-                errTxt.textContent = `ID '${queryId}' tidak dijumpai dalam rekod.`;
+                errTxt.textContent = err.message || 'Carian gagal. Sila cuba lagi.';
                 errCon.classList.remove('hidden');
                 return;
+            } finally {
+                btn.innerHTML = teksBtn;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
             }
 
-            let userRecords = globalRecords.filter(r => r.ID && r.ID.toUpperCase() === queryId);
             userRecords.sort((a, b) => parseInt(b.TAHUN || 0) - parseInt(a.TAHUN || 0));
 
             let totalRM = 0;

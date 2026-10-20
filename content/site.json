@@ -1,0 +1,26 @@
+{
+  "hero": {
+    "lencana": "e-Muzakki Bahrul Ulum",
+    "tajuk": "Selamat Datang,",
+    "subtajuk": "Urus dan semak rekod zakat anda dengan mudah dan selamat.",
+    "gambar": []
+  },
+  "makluman": [
+    "🌟 Tunaikan zakat anda untuk menyucikan harta dan jiwa.",
+    "📢 Peringatan: Bayar zakat sebelum 31 Disember untuk kelayakan rebat cukai pendapatan tahun semasa.",
+    "🕌 Kempen Zakat Bahrul Ulum kini berlangsung. Ayuh menyumbang!"
+  ],
+  "pautan_bayar": "https://bahrululum.edu.my/page/pagedetail.php?schid=579&schname=ZAKAT",
+  "sasaran_kutipan": 100000,
+  "impak": {
+    "bilangan_guru": 60,
+    "keterangan_guru": "Pembayaran gaji guru",
+    "asnaf_guru": "Asnaf Fisabilillah",
+    "bilangan_murid": "±650",
+    "program": "Program Pendidikan & Kebajikan",
+    "fasiliti": "Penyelenggaraan Fasiliti Sekolah"
+  },
+  "penafian": {
+    "hotline": "011-55335082"
+  }
+}

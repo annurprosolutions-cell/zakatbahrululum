@@ -1,87 +1,69 @@
 # e-Muzakki Bahrul Ulum — Backend Apps Script
 
-Fail `Code.gs` adalah backend tunggal untuk portal awam (`index.html`) dan
-dashboard admin (`admin/index.html`).
+`Code.gs` ialah satu-satunya pintu masuk ke pangkalan data (Google Sheet).
+Sheet **tidak lagi diterbitkan ke web**; portal awam dan dashboard admin kedua-duanya
+bercakap dengan Apps Script sahaja.
 
-## Langkah pemasangan
+## Pemasangan (ikut turutan)
 
-1. Buka Google Sheet pangkalan data > **Extensions > Apps Script**.
-2. Tampal keseluruhan kandungan `Code.gs` (ganti kod lama).
-3. **Deploy > New deployment > Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-4. Copy URL yang berakhir dengan `/exec`.
-5. Tampal URL tersebut pada `URL_APPSCRIPT_WEBAPP` di `admin/index.html`.
-   (Portal awam tidak perlu URL ini — ia baca CSV sahaja.)
+1. Buka Google Sheet pangkalan data → **Extensions → Apps Script**, tampal keseluruhan `Code.gs`.
+2. **Tetapkan kata laluan admin** (jangan tulis dalam kod):
+   *Project Settings (ikon gear) → Script properties → Add script property*
+   - Property: `ADMIN_PASSWORD`
+   - Value: kata laluan pilihan anda (panjang, bukan perkataan biasa)
+3. Pilih fungsi **`ujiAkses`** → **Run** → luluskan kebenaran (Sheet + Drive).
+   Semak *Execution log*: semua baris mesti OK dan `ADMIN_PASSWORD: ditetapkan`.
+4. **Deploy → Manage deployments → Edit → New version**
+   (Execute as: **Me**, Who has access: **Anyone**). URL `/exec` kekal sama.
+5. **Matikan Publish to web** pada Sheet:
+   *File → Share → Publish to web → Stop publishing*.
+   Pastikan juga *Share* Sheet hanya untuk akaun yang perlu (bukan "Anyone with the link").
+6. Pastikan `E1` pada tab PAYMENT_RECORDS ialah `RESIT`.
 
-> Setiap kali `Code.gs` diubah, deploy versi baharu
-> (**Deploy > Manage deployments > Edit > New version**) barulah perubahan
-> berkesan pada URL yang sama.
+> Selepas langkah 5, pautan CSV lama (`.../pub?output=csv`) berhenti berfungsi.
+> Ia memang sepatutnya begitu.
 
-## Struktur tab Google Sheet
+## Apa yang boleh diakses siapa
+
+| Pemanggil | Endpoint | Data yang dipulangkan |
+|---|---|---|
+| Awam | `GET ?action=stats` | Jumlah Muzakki + jumlah kutipan setahun (agregat) |
+| Awam | `GET ?action=lookup&id=ID` | Status + rekod bayaran **satu** Muzakki sahaja |
+| Admin | `POST login` / `adminData` / `updateStatus` / `addRecord` / `updateResit` | Semua data. **Wajib** `auth` = `ADMIN_PASSWORD` |
+
+Langkah keselamatan dalam kod:
+
+- Semua tindakan tulis dan baca-penuh hanya melalui `POST` dengan kata laluan admin.
+- Kata laluan salah 5 kali → dikunci 15 minit (dikongsi semua pengguna).
+- Carian awam hanya pulang medan `ID` dan `STATUS`. Lajur lain pada PAYER_LIST (cth nama, telefon)
+  **tidak pernah** dihantar ke portal awam.
+- Carian ID yang tidak wujud melebihi 40 kali / 10 minit disekat sementara (halang tekaan ID).
+- Statistik awam di-cache 5 minit dan dikosongkan setiap kali admin menulis.
+
+## Struktur tab
 
 | Tab | GID | Lajur |
 |---|---|---|
-| PAYER_LIST | `1211671427` | A `ID` \| B `STATUS` |
-| PAYMENT_RECORDS | `1163321599` | A `ID` \| B `TAHUN` \| C `JUMLAH` \| D `TARIKH_BAYAR` \| **E `RESIT`** |
-
-**Langkah sekali sahaja:** taip `RESIT` pada sel **E1** tab PAYMENT_RECORDS.
-Tanpa header ini, portal awam tidak dapat membaca pautan resit.
-
-## Senarai `action` yang disokong
-
-| Action | Fungsi |
-|---|---|
-| `updateStatus` | Kemaskini status Muzakki (Active/Inactive) |
-| `addRecord` | Tambah rekod pembayaran; resit melalui pautan atau muat naik fail (pilihan) |
-| `updateResit` | Tukar, muat naik, atau buang resit pada rekod sedia ada |
+| PAYER_LIST | `1211671427` | A `ID` \| B `STATUS` \| lajur lain dibenarkan (tidak didedahkan kepada awam) |
+| PAYMENT_RECORDS | `1163321599` | A `ID` \| B `TAHUN` \| C `JUMLAH` \| D `TARIKH_BAYAR` \| E `RESIT` |
 
 ## Resit (PDF & imej)
 
-Folder Drive resit: `11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B`
-(dikonfigurasi pada `FOLDER_RESIT_ID` dalam `Code.gs`).
+Folder Drive resit: `11-lP9VFrSqrYZlxtUfvp5KKzdWpA2I4B` (`FOLDER_RESIT_ID`).
 
-Admin ada dua cara memasukkan resit:
+Admin muat naik fail (PDF/JPG/PNG, maks 8MB) atau tampal pautan Drive. Apps Script simpan fail
+ke folder, kongsi sebagai *Anyone with the link → Viewer*, dan tulis pautan ke lajur E.
 
-1. **Muat naik fail** (disyorkan) — pilih PDF/JPG/PNG (maks 8MB) dalam borang.
-   Apps Script simpan ke folder di atas, set perkongsian **Anyone with the link
-   → Viewer**, dan tulis pautan ke lajur E secara automatik.
-2. **Tampal pautan Drive** — jenis fail dikesan sendiri.
-
-Format yang disimpan pada lajur `RESIT`:
-
-| Jenis fail | Disimpan sebagai | Dipapar dengan |
+| Jenis | Disimpan sebagai | Dipapar dengan |
 |---|---|---|
 | JPG / PNG / WEBP | `https://lh3.googleusercontent.com/d/FILEID` | `<img>` |
 | PDF | `https://drive.google.com/file/d/FILEID/preview` | `<iframe>` pratonton Drive |
 
-Pautan Drive mentah yang ditaip terus dalam sheet (cth `.../view?usp=sharing`)
-turut dikenali dan dipapar sebagai pratonton PDF.
+## Kata laluan admin
 
-Dalam popup, Muzakki boleh lihat resit terus atas skrin dan tekan **Muat Turun**
-(PDF dimuat turun melalui pautan `uc?export=download`, tanpa tab baharu).
-
-**Syarat:** fail mesti dikongsi sebagai *Anyone with the link*. Fail yang
-dimuat naik melalui sistem dikongsi automatik; fail yang diletak manual dalam
-folder perlu diset sendiri (atau kongsi seluruh folder).
-
-**Kebenaran Drive:** selepas tampal kod baharu, pilih fungsi `ujiAkses`
-dalam editor Apps Script, tekan **Run**, dan luluskan kebenaran Drive sekali.
-Kemudian deploy versi baharu.
-
-## Aliran kerja
-
-```
-Admin > Pengurusan Muzakki > cari ID
-        ↓
-Tambah Rekod Baru (tahun, jumlah, tarikh, pautan atau fail resit)
-   atau  klik "Tukar" / "+ Tambah Resit" pada rekod sedia ada
-        ↓
-PAYMENT_RECORDS lajur E dikemaskini
-        ↓
-Muzakki buat semakan > klik butang "Resit" pada rekod
-        ↓
-Resit terpapar dalam popup atas skrin + butang Muat Turun
-```
+- Disimpan dalam Script properties sahaja, tidak pernah dalam repo.
+- Halaman admin menyimpannya dalam `sessionStorage` (tab semasa sahaja); **Log Keluar** atau tutup tab memadamnya.
+- Untuk tukar kata laluan: ubah nilai `ADMIN_PASSWORD`. Tidak perlu deploy semula.
+- Jika terkunci (terlalu banyak percubaan salah), tunggu 15 minit.
 
 Hotline rujukan percanggahan rekod: **011-55335082**

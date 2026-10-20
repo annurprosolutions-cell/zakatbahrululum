@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin e-Muzakki Bahrul Ulum</title>
+    <meta name="robots" content="noindex,nofollow">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -43,12 +44,28 @@
             </div>
             <div class="flex items-center gap-4 text-sm font-medium">
                 <span class="bg-blue-800 px-3 py-1 rounded-full border border-blue-700 shadow-inner">Mod Pengurusan</span>
+                <button id="btnLogout" onclick="logKeluar()" class="hidden bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold transition-colors">Log Keluar</button>
             </div>
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 flex-1 w-full">
         
+        <!-- Log Masuk Admin -->
+        <div id="loginOverlay" class="fixed inset-0 z-[80] hidden items-center justify-center bg-[#041a4a]/95 backdrop-blur-sm p-4">
+            <form id="formLogin" class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                <h2 class="text-xl font-black text-slate-900">Log Masuk Admin</h2>
+                <p class="text-sm text-slate-500 font-medium mb-5">e-Muzakki Bahrul Ulum</p>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Kata Laluan</label>
+                <input type="password" id="inputAdminPw" autocomplete="current-password" required class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none font-semibold text-slate-800">
+                <p id="loginRalat" class="hidden mt-3 text-sm font-semibold text-rose-600"></p>
+                <button type="submit" id="btnLogin" class="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md shadow-blue-600/30">Log Masuk</button>
+            </form>
+        </div>
+
         <!-- Loading State -->
         <div id="loadingOverlay" class="fixed inset-0 bg-white/90 z-40 flex flex-col justify-center items-center backdrop-blur-sm transition-opacity duration-300">
             <svg class="animate-spin h-12 w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -351,50 +368,16 @@
     </div>
 
     <script>
-        // URl Pangkalan Data Google Sheets
-        const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQn9DTv_2Un2dhds3AjeaSVblmudPDnILe2trAxtkWV0--av2BvlQWyCDub1rk2u4HpIQsv-92xg8Al/pub';
-        const URL_PAYER_LIST = `${BASE_URL}?gid=1211671427&single=true&output=csv`;
-        const URL_PAYMENT_RECORDS = `${BASE_URL}?gid=1163321599&single=true&output=csv`;
-
-        // MASUKKAN URL GOOGLE APPS SCRIPT WEB APP ANDA DI SINI
+        // Semua data melalui Google Apps Script (Sheet tidak diterbitkan ke web).
+        // Setiap panggilan memerlukan kata laluan admin (Script property ADMIN_PASSWORD).
         const URL_APPSCRIPT_WEBAPP = 'https://script.google.com/macros/s/AKfycbwnN4vBHvKfgGfIa8bBxGySYuKi1TuNXTBqJq2uuBJx-GJtIUZ9w3bNkKxaoG7bUUiD/exec'; 
 
         // State Global
         let globalPayers = [];
         let globalRecords = [];
+        let adminPassword = '';
         let chartInstanceBar = null;
         let chartInstanceLine = null;
-
-        // CSV Parser Logic
-        function parseCSV(str) {
-            const arr = [];
-            let quote = false;
-            let row = 0, col = 0, c = 0;
-            for (row = col = c = 0; c < str.length; c++) {
-                let cc = str[c], nc = str[c+1];
-                arr[row] = arr[row] || [];
-                arr[row][col] = arr[row][col] || '';
-                if (cc === '"' && quote && nc === '"') { arr[row][col] += cc; ++c; continue; }
-                if (cc === '"') { quote = !quote; continue; }
-                if (cc === ',' && !quote) { ++col; continue; }
-                if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
-                if (cc === '\n' && !quote) { ++row; col = 0; continue; }
-                if (cc === '\r' && !quote) { ++row; col = 0; continue; }
-                arr[row][col] += cc;
-            }
-            if (arr.length === 0) return [];
-            const headers = arr[0].map(h => h.trim());
-            const data = [];
-            for (let i = 1; i < arr.length; i++) {
-                if (arr[i].length === 1 && arr[i][0] === "") continue;
-                let obj = {};
-                for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = arr[i][j] ? arr[i][j].trim() : '';
-                }
-                data.push(obj);
-            }
-            return data;
-        }
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(amount);
@@ -402,18 +385,14 @@
 
         async function initializeDashboard() {
             try {
-                const [payerRes, recordsRes] = await Promise.all([
-                    fetch(URL_PAYER_LIST),
-                    fetch(URL_PAYMENT_RECORDS)
-                ]);
-
-                globalPayers = parseCSV(await payerRes.text());
-                globalRecords = parseCSV(await recordsRes.text());
+                const data = await panggilApi({ action: 'adminData' });
+                globalPayers = data.payers || [];
+                globalRecords = data.records || [];
 
                 // Setup Filters
                 populateFilterDropdowns();
                 populateForms(); // For manage search dropdown
-                
+
                 // Initialize default view
                 applyFilters();
 
@@ -422,14 +401,72 @@
                 const activePayers = globalPayers.filter(p => (p.STATUS || '').toLowerCase() === 'active').length;
                 document.getElementById('metricTotalPayers').textContent = totalPayers;
                 document.getElementById('metricActivePayers').textContent = activePayers;
-                
+
                 // Hide loader
                 const loader = document.getElementById('loadingOverlay');
                 loader.style.opacity = '0';
                 setTimeout(() => loader.classList.add('hidden'), 300);
+                document.getElementById('btnLogout').classList.remove('hidden');
             } catch (error) {
                 console.error("Error loading admin data:", error);
-                showModal("Ralat Rangkaian", "Gagal memuat turun data dari pelayan. Sila pastikan sambungan internet anda stabil.", "error");
+                // Ralat kata laluan sudah ditangani oleh paparan log masuk
+                if (document.getElementById('loginOverlay').classList.contains('hidden')) {
+                    showModal("Ralat", error.message || "Gagal memuat turun data dari pelayan. Sila pastikan sambungan internet anda stabil.", "error");
+                }
+            }
+        }
+
+        // ==========================================
+        // LOG MASUK ADMIN
+        // ==========================================
+        function tunjukLogin(mesej) {
+            const o = document.getElementById('loginOverlay');
+            o.classList.remove('hidden');
+            o.classList.add('flex');
+            const r = document.getElementById('loginRalat');
+            if (mesej) { r.textContent = mesej; r.classList.remove('hidden'); } else { r.classList.add('hidden'); }
+            setTimeout(() => document.getElementById('inputAdminPw').focus(), 100);
+        }
+
+        function sembunyiLogin() {
+            const o = document.getElementById('loginOverlay');
+            o.classList.add('hidden');
+            o.classList.remove('flex');
+        }
+
+        function logKeluar() {
+            try { sessionStorage.removeItem('adminPw'); } catch (e) {}
+            location.reload();
+        }
+
+        document.getElementById('formLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const teks = btn.textContent;
+            btn.disabled = true; btn.textContent = 'Menyemak...'; btn.classList.add('opacity-75');
+
+            adminPassword = document.getElementById('inputAdminPw').value;
+            try {
+                await panggilApi({ action: 'login' });
+                try { sessionStorage.setItem('adminPw', adminPassword); } catch (e) {}
+                document.getElementById('inputAdminPw').value = '';
+                sembunyiLogin();
+                await initializeDashboard();
+            } catch (error) {
+                tunjukLogin(error.message);
+            } finally {
+                btn.disabled = false; btn.textContent = teks; btn.classList.remove('opacity-75');
+            }
+        });
+
+        function mulaAdmin() {
+            let simpan = '';
+            try { simpan = sessionStorage.getItem('adminPw') || ''; } catch (e) {}
+            if (simpan) {
+                adminPassword = simpan;
+                initializeDashboard();
+            } else {
+                tunjukLogin();
             }
         }
 
@@ -440,6 +477,8 @@
             });
             
             const yearSelect = document.getElementById('filterYear');
+            const dipilih = yearSelect.value;
+            yearSelect.innerHTML = '<option value="all">Semua Tahun</option>';
             const sortedYears = Array.from(yearSet).sort().reverse(); // Tahun terkini di atas
             
             sortedYears.forEach(y => {
@@ -448,6 +487,7 @@
                 opt.textContent = y;
                 yearSelect.appendChild(opt);
             });
+            yearSelect.value = sortedYears.indexOf(dipilih) !== -1 ? dipilih : 'all';
         }
 
         function applyFilters() {
@@ -729,29 +769,19 @@
             btnSubmit.innerText = "Menyimpan..."; btnSubmit.disabled = true; btnSubmit.classList.add('opacity-75');
 
             try {
-                if(URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') throw new Error("Sila tetapkan URL_APPSCRIPT_WEBAPP di dalam fail HTML terlebih dahulu.");
+                const result = await panggilApi({ action: 'updateStatus', id: selectedPayerId, status: status });
+                showModal("Status Dikemaskini", result.message, "success");
 
-                const response = await fetch(URL_APPSCRIPT_WEBAPP, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'updateStatus', id: selectedPayerId, status: status })
-                });
+                // Update visual badge
+                const badge = document.getElementById('displayPayerStatus');
+                badge.textContent = status;
+                badge.className = status === 'Active'
+                    ? 'px-3 py-1 bg-green-100 text-green-700 text-sm font-black rounded-full border border-green-200 shadow-sm'
+                    : 'px-3 py-1 bg-red-100 text-red-700 text-sm font-black rounded-full border border-red-200 shadow-sm';
 
-                const result = await response.json();
-                if (result.status === 'success') {
-                    showModal("Status Dikemaskini", result.message, "success");
-                    
-                    // Update visual badge
-                    const badge = document.getElementById('displayPayerStatus');
-                    badge.textContent = status;
-                    badge.className = status === 'Active' 
-                        ? 'px-3 py-1 bg-green-100 text-green-700 text-sm font-black rounded-full border border-green-200 shadow-sm' 
-                        : 'px-3 py-1 bg-red-100 text-red-700 text-sm font-black rounded-full border border-red-200 shadow-sm';
-                        
-                    // Update global memory
-                    const index = globalPayers.findIndex(p => p.ID === selectedPayerId);
-                    if(index !== -1) globalPayers[index].STATUS = status;
-                } else throw new Error(result.message);
+                // Update global memory
+                const index = globalPayers.findIndex(p => p.ID === selectedPayerId);
+                if(index !== -1) globalPayers[index].STATUS = status;
             } catch (error) {
                 showModal("Ralat API", error.message, "error");
             } finally {
@@ -774,39 +804,30 @@
             btnSubmit.innerHTML = "Memproses..."; btnSubmit.disabled = true; btnSubmit.classList.add('opacity-75');
 
             try {
-                if(URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') throw new Error("Sila tetapkan URL Web App Apps Script anda.");
-
                 const fail = await bacaFail(failInput);
                 if (fail) btnSubmit.innerHTML = "Memuat naik resit...";
 
-                const response = await fetch(URL_APPSCRIPT_WEBAPP, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(Object.assign(
-                        { action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date, receipt: receipt },
-                        fail || {}
-                    ))
-                });
+                const result = await panggilApi(Object.assign(
+                    { action: 'addRecord', id: selectedPayerId, year: year, amount: amount, date: date, receipt: receipt },
+                    fail || {}
+                ));
 
-                const result = await response.json();
-                if (result.status === 'success') {
-                    showModal("Rekod Ditambah!", `Bayaran RM${amount} (Tahun ${year}) untuk ${selectedPayerId} berjaya direkod ke pangkalan data.`, "success");
-                    
-                    // Reset input
-                    document.getElementById('inputRecordAmount').value = '';
-                    document.getElementById('inputRecordReceipt').value = '';
-                    failInput.value = '';
+                showModal("Rekod Ditambah!", `Bayaran RM${amount} (Tahun ${year}) untuk ${selectedPayerId} berjaya direkod ke pangkalan data.`, "success");
 
-                    // Update memory & re-render table
-                    globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date, RESIT: result.link || '' });
-                    
-                    // Update Year Filter dropdown in case a new year was added
-                    populateFilterDropdowns(); 
-                    
-                    // Re-render components
-                    renderManageHistory();
-                    applyFilters(); // Update dashboard charts in background
-                } else throw new Error(result.message);
+                // Reset input
+                document.getElementById('inputRecordAmount').value = '';
+                document.getElementById('inputRecordReceipt').value = '';
+                failInput.value = '';
+
+                // Update memory & re-render table
+                globalRecords.push({ ID: selectedPayerId, TAHUN: year, JUMLAH: amount, TARIKH_BAYAR: date, RESIT: result.link || '' });
+
+                // Update Year Filter dropdown in case a new year was added
+                populateFilterDropdowns();
+
+                // Re-render components
+                renderManageHistory();
+                applyFilters(); // Update dashboard charts in background
             } catch(error) {
                 showModal("Gagal Disimpan", error.message, "error");
             } finally {
@@ -815,21 +836,25 @@
         });
 
         // ==========================================
-        // PENGURUSAN RESIT MANUAL (hantaran Muzakki)
+        // PANGGILAN API (kata laluan admin disertakan pada setiap permintaan)
         // ==========================================
-        let resitSedangMuat = false;
-
         async function panggilApi(payload) {
-            if (URL_APPSCRIPT_WEBAPP === 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI') {
-                throw new Error('Sila tetapkan URL_APPSCRIPT_WEBAPP di dalam fail admin/index.html terlebih dahulu.');
-            }
             const response = await fetch(URL_APPSCRIPT_WEBAPP, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(Object.assign({ auth: adminPassword }, payload))
             });
             const result = await response.json();
-            if (result.status !== 'success') throw new Error(result.message);
+
+            if (result.status !== 'success') {
+                // Kata laluan tidak sah / sesi tamat -> minta log masuk semula
+                if (/kata laluan admin/i.test(result.message || '')) {
+                    try { sessionStorage.removeItem('adminPw'); } catch (e) {}
+                    adminPassword = '';
+                    if (payload.action !== 'login') tunjukLogin('Sesi tamat atau kata laluan tidak sah. Sila log masuk semula.');
+                }
+                throw new Error(result.message);
+            }
             return result;
         }
 
@@ -993,17 +1018,6 @@
             }
         }
 
-        async function refreshRekodRasmi() {
-            try {
-                const res = await fetch(URL_PAYMENT_RECORDS + '&t=' + Date.now());
-                globalRecords = parseCSV(await res.text());
-                applyFilters();
-                if (selectedPayerId) renderManageHistory();
-            } catch (error) {
-                console.warn('Gagal menyegerak rekod rasmi:', error);
-            }
-        }
-
         function escapeHtml(teks) {
             return String(teks == null ? '' : teks)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1039,7 +1053,7 @@
             else if (!document.getElementById('editResitModal').classList.contains('hidden')) tutupEditResit();
         });
 
-        window.onload = initializeDashboard;
+        window.onload = mulaAdmin;
     </script>
 </body>
 </html>

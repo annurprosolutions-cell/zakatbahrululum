@@ -1,0 +1,91 @@
+# Sveltia CMS — pengurusan KANDUNGAN laman sahaja.
+# Data muzakki, pembayaran dan resit TIDAK diurus di sini (kekal di Google Sheet melalui Apps Script).
+
+backend:
+  name: github
+  repo: annurprosolutions-cell/zakatbahrululum
+  branch: main
+
+# Gambar dimuat naik ke folder uploads/ dalam repo.
+# Laluan disimpan sebagai /uploads/nama-fail; laman menukarnya kepada laluan relatif
+# supaya berfungsi di GitHub Pages (subfolder) mahupun domain sendiri.
+media_folder: uploads
+public_folder: /uploads
+
+media_libraries:
+  default:
+    config:
+      max_file_size: 2097152        # 2MB; fail lebih besar ditolak
+      slugify_filename: true        # buang ruang / aksara pelik daripada nama fail
+      transformations:
+        raster_image:               # JPG/PNG dimampatkan ke WebP automatik
+          format: webp
+          quality: 82
+          width: 1600
+
+collections:
+  - name: laman
+    label: Kandungan Laman
+    files:
+      - name: site
+        label: Laman Utama
+        file: content/site.json
+        format: json
+        fields:
+          - label: Hero (bahagian atas)
+            name: hero
+            widget: object
+            collapsed: false
+            fields:
+              - label: Gambar Hero
+                name: gambar
+                widget: list
+                label_singular: gambar
+                summary: "{{fields.imej}}"
+                min: 0
+                max: 5
+                required: false
+                hint: "Kosongkan untuk guna tema hijau asal. Lebih satu gambar = bertukar sendiri setiap 5 saat. Guna gambar mendatar (landscape), sekurang-kurangnya 1200px lebar."
+                field:
+                  label: Gambar
+                  name: imej
+                  widget: image
+              - { label: Lencana (teks kecil atas tajuk), name: lencana, widget: string, required: false }
+              - { label: Tajuk, name: tajuk, widget: string, required: false }
+              - { label: Sub-tajuk, name: subtajuk, widget: text, required: false }
+
+          - label: Makluman (teks bergerak)
+            name: makluman
+            widget: list
+            label_singular: makluman
+            hint: "Setiap baris dipaparkan berturutan dalam jalur makluman. Emoji dibenarkan."
+            field: { label: Teks, name: teks, widget: string }
+
+          - label: Pautan Bayar Zakat
+            name: pautan_bayar
+            widget: string
+            hint: "Mesti bermula dengan https://"
+            pattern: ["^https://.+", "Mesti bermula dengan https://"]
+
+          - label: Sasaran Kutipan Tahunan (RM)
+            name: sasaran_kutipan
+            widget: number
+            value_type: int
+            min: 1
+
+          - label: Impak Zakat
+            name: impak
+            widget: object
+            fields:
+              - { label: Bilangan Guru (Manfaat Langsung), name: bilangan_guru, widget: number, value_type: int, min: 0 }
+              - { label: Keterangan Guru, name: keterangan_guru, widget: string }
+              - { label: Asnaf, name: asnaf_guru, widget: string }
+              - { label: Bilangan Murid (Manfaat Tidak Langsung), name: bilangan_murid, widget: string, hint: "Teks bebas, cth: ±650" }
+              - { label: Program Pendidikan & Kebajikan, name: program, widget: string }
+              - { label: Penyelenggaraan Fasiliti, name: fasiliti, widget: string }
+
+          - label: Penafian Rekod (footer)
+            name: penafian
+            widget: object
+            fields:
+              - { label: Nombor Hotline, name: hotline, widget: string, pattern: ["^[0-9+\\-\\s]{7,20}$", "Nombor telefon sahaja"] }
