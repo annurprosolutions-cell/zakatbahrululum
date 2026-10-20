@@ -631,7 +631,10 @@
         function paparHero(senarai) {
             const bg = document.getElementById('heroBg');
             const ov = document.getElementById('heroOverlay');
-            const imej = (Array.isArray(senarai) ? senarai : []).map(laluanImejSelamat).filter(Boolean);
+            // Terima rentetan ("/uploads/a.webp") atau objek ({ imej: "/uploads/a.webp" })
+            const imej = (Array.isArray(senarai) ? senarai : [])
+                .map(x => laluanImejSelamat(x && typeof x === 'object' ? x.imej : x))
+                .filter(Boolean);
 
             clearInterval(heroTimer);
             bg.innerHTML = '';
